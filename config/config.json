@@ -1,0 +1,47 @@
+{
+  "sql_connection": {
+    "server": "localhost\\SQLEXPRESS",
+    "database": "TestDB",
+    "uid": "sa",
+    "pwd": "InsightDB@123",
+    "driver": "ODBC Driver 17 for SQL Server",
+    "trust_cert": false
+  },
+  "sql_processing": {
+    "table_relations": "inputs/table_relations/relations.json",
+    "flat_file_data": "inputs/data_flat_file",
+    "include_schemas": "",
+    "exclude_schemas": "",
+    "include_tables": "",
+    "exclude_tables": "",
+    "max_rows": null,
+    "batch_size": 10000
+  },
+  "table_relations": "input_data\\table_relations\\relations.json",
+  "flat_file_data": "input_data\\data_flat_file",
+  "domain_mapping": "config\\domain_mapping.json",
+  "tables_dir": "input_data\\data_flat_file",
+  "debug": true,
+  "query": null,
+  "embeddings": null,
+  "top_k": 10,
+  "generated_embedding_store": "processed_data_store\\embeddings_store",
+  "domain_mapped_csv_store": "processed_data_store\\domain_mapped_csv_store",
+  "company_mapped_data": {
+      "processed_data_store": "processed_data_store\\company_mapped_store",
+      "tfidf_search_store" : "processed_data_store\\company_mapped_store\\tfidf_search",
+      "dense_index_store": "processed_data_store\\company_mapped_store\\dense_search"
+  },
+  "text_cols": null,
+  "min_score": null,
+  "exact_only": false,
+  "prefer_exact": false,
+  "boost_exact": 0.15,
+  "columns": "_id,_score,CompanyRefNo,CompanyNumber,Domain,_doc",
+  "show_source": false,
+  "sentence_transformer_model_name": "models\\sentence-transformers\\sentence-transformers_all-mpnet-base-v2",
+  "sentence_transformer_model_from_net": "sentence-transformers/all-mpnet-base-v2",
+  "batch_size": 256,
+  "mistral_model_path": "models\\mistral-7b-instruct-v0.2.Q5_K_S.gguf",
+  "qwen_model_path": "models\\Qwen2.5-14B-Instruct-Q4_K_M.gguf"
+}

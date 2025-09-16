@@ -1,0 +1,32 @@
+2025-09-14 12:28:32,061 - INFO - root - Logging initialized (level=DEBUG)
+2025-09-14 12:28:32,061 - INFO - __main__ - Attempting to load configuration from config/config.json
+2025-09-14 12:28:32,061 - WARNING - __main__ - Config file not found at: config/config.json. Returning None.
+2025-09-14 12:28:32,061 - DEBUG - __main__ - Extracting SQL connection parameters
+2025-09-14 12:28:32,061 - INFO - __main__ - SQL Connection Parameters: None
+2025-09-14 12:28:32,061 - DEBUG - __main__ - Extracting SQL processing parameters
+2025-09-14 12:28:32,061 - INFO - __main__ - SQL Processing Parameters: None
+2025-09-14 12:28:32,061 - DEBUG - __main__ - Extracting processing parameters
+2025-09-14 12:28:32,068 - INFO - __main__ - Processing Parameters: None
+2025-09-14 12:28:32,081 - DEBUG - __main__ - Extracting embedding parameters
+2025-09-14 12:28:32,081 - INFO - __main__ - Embedding Parameters: None
+2025-09-14 12:28:32,081 - DEBUG - __main__ - Extracting search parameters
+2025-09-14 12:28:32,081 - INFO - __main__ - Search Parameters: None
+2025-09-14 12:28:32,085 - DEBUG - __main__ - Extracting embedding parameters
+2025-09-14 12:28:32,085 - ERROR - __main__ - Config parameter must be a dictionary
+2025-09-14 12:28:32,085 - ERROR - __main__ - Error: Config must be a dictionary
+2025-09-14 12:28:44,193 - INFO - root - Logging initialized (level=DEBUG)
+2025-09-14 12:28:44,193 - INFO - __main__ - Attempting to load configuration from config/config.json
+2025-09-14 12:28:44,193 - WARNING - __main__ - Config file not found at: config/config.json. Returning None.
+2025-09-14 12:28:44,193 - DEBUG - __main__ - Extracting SQL connection parameters
+2025-09-14 12:28:44,193 - INFO - __main__ - SQL Connection Parameters: None
+2025-09-14 12:28:44,193 - DEBUG - __main__ - Extracting SQL processing parameters
+2025-09-14 12:28:44,193 - INFO - __main__ - SQL Processing Parameters: None
+2025-09-14 12:28:44,193 - DEBUG - __main__ - Extracting processing parameters
+2025-09-14 12:28:44,193 - INFO - __main__ - Processing Parameters: None
+2025-09-14 12:28:44,193 - DEBUG - __main__ - Extracting embedding parameters
+2025-09-14 12:28:44,193 - INFO - __main__ - Embedding Parameters: None
+2025-09-14 12:28:44,204 - DEBUG - __main__ - Extracting search parameters
+2025-09-14 12:28:44,204 - INFO - __main__ - Search Parameters: None
+2025-09-14 12:28:44,204 - DEBUG - __main__ - Extracting embedding parameters
+2025-09-14 12:28:44,206 - ERROR - __main__ - Config parameter must be a dictionary
+2025-09-14 12:28:44,206 - ERROR - __main__ - Error: Config must be a dictionary

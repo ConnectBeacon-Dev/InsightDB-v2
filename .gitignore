@@ -1,0 +1,13 @@
+*.pyc
+__pycache__/
+models/*
+!models/get_sentence_transformer_models.py
+processed_data_store/company_mapped_store
+processed_data_store/domain_mapped_csv_store
+processed_data_store/embeddings_store
+
+tools/w64devkit*
+
+venv/*
+
+logs/app.log

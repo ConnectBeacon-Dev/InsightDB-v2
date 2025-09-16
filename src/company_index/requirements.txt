@@ -1,0 +1,6 @@
+scikit-learn
+numpy
+scipy
+pandas
+faiss-cpu
+sentence-transformers
