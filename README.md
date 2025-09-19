@@ -3,15 +3,13 @@ Project for making ML Query for Database
 
 ### Start by creating virutal enviornment
 
-- baseFolder = CurrentWorkinDirectory
-- .\setup_env.ps1
-- Models
-  - Either:
-     Copy-Item ..\gguf* -Destination .\flat-file-approach\models -Force
-  - Or:
-     SymbolicLink (command at bottom)
-     
-- python.exe .\flat-file-approach\models\get_sentence_transformer_models.py
+Setup your virtual env
+- cd venv/Script
+-  .\venv\Scripts\Activate.ps1
+
+### Install sentence transformers & llama-cpp-python
+
+- python.exe .\models\get_sentence_transformer_models.py
 - .\flat-file-approach\tools\setup_llama_and_models.ps1
 
 
@@ -31,3 +29,10 @@ New-Item -ItemType SymbolicLink `
   -Path "Qwen2.5-14B-Instruct-Q4_K_M.gguf" `
   -Target "D:\CBDPIT\models\Qwen2.5-14B-Instruct-Q4_K_M.gguf"
 ```
+
+### Run the following commands
+cd InsightDB-v2-main
+1. python src\load_config.py
+2. python -m src.input_data_processing.generate_grouped_csvs_with_data
+3. python -m src.company_index.company_search_api  create 
+4. python -m src.query_engine.enhanced_query_with_summary
