@@ -1,0 +1,11 @@
+﻿Id,CompanyScale,CreatedDate,CreatedBy,IsActive
+1,Micro,2025-08-03T13:55:33.080000,admin,True
+2,Small,2025-08-03T13:55:33.080000,admin,True
+3,Medium,2025-08-03T13:55:33.080000,admin,True
+4,Large,2025-08-03T13:55:33.080000,admin,True
+5,Enterprise,2025-08-03T13:55:33.080000,admin,True
+6,Micro,2025-08-03T13:55:40.140000,admin,True
+7,Small,2025-08-03T13:55:40.140000,admin,True
+8,Medium,2025-08-03T13:55:40.140000,admin,True
+9,Large,2025-08-03T13:55:40.140000,admin,True
+10,Enterprise,2025-08-03T13:55:40.140000,admin,True

@@ -921,9 +921,7 @@ def execute_embedding_query(user_query: str, config, logger) -> Dict:
     
     decomposer = EmbeddingQueryDecomposer(config, logger)
     decomposed = decomposer.decompose_query(user_query)
-    logger.info("**************************")
-    logger.info(decomposed)
-    logger.info("=========================")
+
     return decomposer.execute_decomposed_query(decomposed)
 
 # Enhanced execution with LLM validation

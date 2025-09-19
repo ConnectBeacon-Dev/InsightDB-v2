@@ -19,7 +19,7 @@ def test_integration():
     print("=" * 60)
     
     test_queries = [
-        "list small scale companies from Karnataka",
+        "list small scale companies from India",
         "show companies with electrical expertise", 
         "find products from medium scale companies",
         "companies having ISO certification"
@@ -30,7 +30,7 @@ def test_integration():
         print("-" * 40)
         
         try:
-            result = execute_embedding_query(query)
+            result = execute_embedding_query(query, config, logger)
             
             if 'error' in result:
                 print(f"❌ Error: {result['error']}")

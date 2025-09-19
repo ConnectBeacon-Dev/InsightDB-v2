@@ -1,0 +1,11 @@
+﻿Id,Organization_Type,CreatedDate,CreatedBy,IsActive
+1,Private Ltd,2025-08-03T13:55:33.080000,admin,True
+2,Public Ltd,2025-08-03T13:55:33.080000,admin,True
+3,LLP,2025-08-03T13:55:33.080000,admin,True
+4,Government,2025-08-03T13:55:33.080000,admin,True
+5,NGO,2025-08-03T13:55:33.080000,admin,True
+6,Private Ltd,2025-08-03T13:55:40.137000,admin,True
+7,Public Ltd,2025-08-03T13:55:40.137000,admin,True
+8,LLP,2025-08-03T13:55:40.137000,admin,True
+9,Government,2025-08-03T13:55:40.137000,admin,True
+10,NGO,2025-08-03T13:55:40.137000,admin,True

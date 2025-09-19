@@ -1,0 +1,11 @@
+﻿Id,IndustryDomainType,CreatedDate,CreatedBy,IsActive
+1,Energy,2025-08-03T13:55:33.080000,admin,True
+2,Manufacturing,2025-08-03T13:55:33.080000,admin,True
+3,Aerospace,2025-08-03T13:55:33.080000,admin,True
+4,Telecommunication,2025-08-03T13:55:33.080000,admin,True
+5,IT Services,2025-08-03T13:55:33.080000,admin,True
+6,Energy,2025-08-03T13:55:40.137000,admin,True
+7,Manufacturing,2025-08-03T13:55:40.137000,admin,True
+8,Aerospace,2025-08-03T13:55:40.137000,admin,True
+9,Telecommunication,2025-08-03T13:55:40.137000,admin,True
+10,IT Services,2025-08-03T13:55:40.137000,admin,True

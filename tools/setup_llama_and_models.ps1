@@ -1,5 +1,5 @@
 $workFolder = (Get-Location).Path
-$tools  = Join-Path $workFolder "flat-file-approach\tools"
+$tools  = Join-Path $workFolder "tools"
 
 # --- Install llama-cpp-python (MinGW via w64devkit) ---
 Write-Host "Installing llama-cpp-python prerequisites..." -ForegroundColor Green

@@ -1,0 +1,5 @@
+﻿Id,ProductTypeName,IsActive
+1,Transformer,True
+2,Radar,True
+3,5G Antenna,True
+4,AI Software,True

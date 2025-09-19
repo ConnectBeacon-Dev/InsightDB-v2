@@ -31,12 +31,12 @@ if (Test-Path "$baseFolder\requirements.txt") {
     Write-Host "Installing from root requirements.txt..." -ForegroundColor Green
     pip install -r "$baseFolder\requirements.txt"
     $requirementsFound = $true
-} elseif (Test-Path "$baseFolder\flat-file-approach\requirements.txt") {
-    Write-Host "Installing from flat-file-approach\requirements.txt..." -ForegroundColor Green
-    pip install -r "$baseFolder\flat-file-approach\requirements.txt"
+} elseif (Test-Path "$baseFolder\requirements.txt") {
+    Write-Host "Installing from requirements.txt..." -ForegroundColor Green
+    pip install -r "$baseFolder\requirements.txt"
     $requirementsFound = $true
 } else {
-    Write-Host "No requirements.txt found in root or flat-file-approach directory." -ForegroundColor Yellow
+    Write-Host "No requirements.txt found in root directory." -ForegroundColor Yellow
 }
 
 # Install essential packages if requirements.txt wasn't found or to ensure they're available

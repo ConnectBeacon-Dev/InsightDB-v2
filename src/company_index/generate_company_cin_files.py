@@ -34,7 +34,6 @@ class LLMProcessor:
         self.logger = logger
 
         self.models = {
-            "mistral": self.config.get("mistral_model_path"),
             "qwen": self.config.get("qwen_model_path")
         }
         

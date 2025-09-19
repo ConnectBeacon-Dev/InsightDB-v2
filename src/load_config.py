@@ -212,7 +212,7 @@ def load_config(config_path="config/config.json"):
         'generated_embedding_store', 'domain_mapped_csv_store', 'company_mapped_data',
         'text_cols', 'min_score', 'exact_only', 'prefer_exact',
         'boost_exact', 'columns', 'show_source', 'sentence_transformer_model_name', 
-        'sentence_transformer_model_from_net', 'batch_size', 'mistral_model_path', 'qwen_model_path'
+        'sentence_transformer_model_from_net', 'batch_size', 'qwen_model_path'
     ]
     missing_keys = [key for key in required_keys if key not in config]
     if missing_keys:
@@ -263,7 +263,7 @@ def load_config(config_path="config/config.json"):
 
     # Validate top-level parameters
     for key in ['table_relations', 'flat_file_data', 'domain_mapping', 'generated_embedding_store', 'domain_mapped_csv_store',
-                'sentence_transformer_model_name', 'sentence_transformer_model_from_net', 'mistral_model_path', 'qwen_model_path']:
+                'sentence_transformer_model_name', 'sentence_transformer_model_from_net', 'qwen_model_path']:
         if not isinstance(config[key], str):
             logger.error(f"Invalid type for {key}: expected string, got {type(config[key]).__name__}")
             raise TypeError(f"Invalid type for {key}: expected string, got {type(config[key]).__name__}")
@@ -336,9 +336,9 @@ def load_config(config_path="config/config.json"):
     if config['tables_dir'] is not None and not os.path.isdir(config['tables_dir']):
         logger.error(f"Tables directory not found at: {config['tables_dir']}")
         raise NotADirectoryError(f"Tables directory not found at: {config['tables_dir']}")
-    if not os.path.isfile(config['mistral_model_path']):
-        logger.error(f"Model file not found at: {config['mistral_model_path']}")
-        raise FileNotFoundError(f"Model file not found at: {config['mistral_model_path']}")
+    if not os.path.isfile(config['qwen_model_path']):
+        logger.error(f"Model file not found at: {config['qwen_model_path']}")
+        raise FileNotFoundError(f"Model file not found at: {config['qwen_model_path']}")
     logger.debug("All file and directory paths validated successfully")
     logger.info("Configuration loaded and validated successfully")
 
@@ -365,6 +365,8 @@ def get_sql_processing_params(config):
 def get_processing_params(config):
     """Extract processing parameters for CSV generation"""
     logger.debug("Extracting processing parameters")
+    print("===================")
+    print(config)
     return {
         'domain_mapping': config['domain_mapping'],
         'table_relations': config['table_relations'],
@@ -381,7 +383,7 @@ def get_embedding_params(config):
         'stores_root': config.get('stores_root', config.get('generated_embedding_store', 'embeddings_store')),
         'model_name': config.get('model_name', config.get('sentence_transformer_model_name', 'sentence-transformers/all-mpnet-base-v2')),
         'batch_size': config['batch_size'],
-        'mistral_model_path': config['mistral_model_path']
+        'qwen_model_path': config['qwen_model_path']
     } if config else None
 
 

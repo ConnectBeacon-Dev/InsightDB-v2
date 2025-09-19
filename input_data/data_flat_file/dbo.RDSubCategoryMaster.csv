@@ -1,0 +1,10 @@
+﻿Id,RDCategory_Fk_Id,RDSubCategoryName,IsActive
+1,1,High Voltage Lab,True
+2,2,Satellite Payload Testing,True
+3,3,5G NR Lab,True
+4,4,AI Model Training,True
+5,1,High Voltage Labs,True
+6,2,Composite Testing,True
+7,3,Circuit Prototyping,True
+8,4,Satellite Propulsion,True
+9,5,5G Signal Labs,True

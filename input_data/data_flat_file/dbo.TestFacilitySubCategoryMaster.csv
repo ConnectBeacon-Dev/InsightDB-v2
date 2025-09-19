@@ -1,0 +1,6 @@
+﻿Id,TestFacility_Fk_Id,SubCategoryName,Description,IsActive
+1,1,Insulation Testing,Check insulation resistance,True
+2,2,Tensile Strength,Check tensile properties,True
+3,3,Thermal Expansion,Measure material expansion,True
+4,4,RF Spectrum,Measure RF signal integrity,True
+5,5,Automation QA,Automated software testing,True

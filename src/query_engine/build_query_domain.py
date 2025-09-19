@@ -76,7 +76,6 @@ class IndustrialQueryPlanner:
         
         # Get model paths from config
         self.qwen_model_path = self.config.get('qwen_model_path')
-        self.mistral_model_path = self.config.get('mistral_model_path')
         
         # Initialize Qwen model client as primary LLM
         self.qwen_client = None

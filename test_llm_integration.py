@@ -7,16 +7,19 @@ import sys
 import os
 sys.path.append('src')
 
-from src.embedding_query_decomposer import execute_embedding_query, execute_enhanced_embedding_query
+from src.query_engine.embedding_query_decomposer import execute_embedding_query, execute_enhanced_embedding_query
+from src.load_config import load_config
 
 def test_both_approaches():
     """Test both embedding-only and enhanced embedding+LLM approaches"""
     print("🧪 Testing Both Approaches: Embedding vs Enhanced Embedding+LLM")
     print("=" * 80)
     
+    (config, logger) = load_config()
+
     test_queries = [
         # High confidence query (should not trigger LLM)
-        "list small scale companies from Karnataka",
+        "list small scale companies from India",
         
         # Medium confidence query (may trigger LLM)
         "show electrical expertise companies", 
@@ -60,7 +63,7 @@ def test_both_approaches():
         print("-" * 40)
         
         try:
-            result2 = execute_enhanced_embedding_query(query, enable_llm_validation=True)
+            result2 = execute_enhanced_embedding_query(query, config, logger, enable_llm_validation=True)
             
             if 'error' in result2:
                 print(f"❌ Error: {result2['error']}")
@@ -104,6 +107,8 @@ def test_confidence_calculation():
     print("🧪 Testing Confidence Calculation Mechanism")
     print("=" * 80)
     
+    (config, logger) = load_config()
+
     confidence_test_queries = [
         ("list companies", "Simple, clear query - should have high confidence"),
         ("small scale companies from Karnataka", "Well-structured query - should have high confidence"),
@@ -117,7 +122,7 @@ def test_confidence_calculation():
         print(f"📝 Expected: {description}")
         
         try:
-            result = execute_enhanced_embedding_query(query, enable_llm_validation=False)  # Just test confidence
+            result = execute_enhanced_embedding_query(query, config, logger, enable_llm_validation=False)  # Just test confidence
             confidence = result.get('confidence', 0)
             components = result.get('components', 0)
             dependencies = result.get('dependencies', 0)

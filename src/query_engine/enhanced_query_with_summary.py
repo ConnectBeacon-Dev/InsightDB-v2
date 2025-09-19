@@ -13,6 +13,43 @@ from src.query_engine.embedding_query_decomposer import execute_enhanced_embeddi
 from src.query_engine.summarize_result import summarize_locally_enhanced
 from src.load_config import load_config, get_company_mapped_data_processed_data_store
 
+def _extract_company_contact_info(company_info: Dict) -> Dict[str, str]:
+    """Extract contact information from company data."""
+    contact_details = {
+        'email': '',
+        'website': '',
+        'phone': ''
+    }
+    
+    try:
+        # Extract from complete data
+        complete_data = company_info.get('complete_data', {})
+        
+        # Basic info for contact details
+        basic_info = complete_data.get('CompanyProfile.BasicInfo', {}).get('data', [])
+        if basic_info:
+            basic = basic_info[0]
+            contact_details['email'] = basic.get('CompanyMaster.EmailId', '') or basic.get('CompanyMaster.POC_Email', '')
+            contact_details['website'] = basic.get('CompanyMaster.Website', '')
+            contact_details['phone'] = basic.get('CompanyMaster.Phone', '')
+        
+        # Contact info section
+        contact_info = complete_data.get('CompanyProfile.ContactInfo', {}).get('data', [])
+        if contact_info:
+            contact = contact_info[0]
+            # Use contact info if basic info doesn't have these details
+            if not contact_details['email']:
+                contact_details['email'] = contact.get('CompanyMaster.EmailId', '') or contact.get('CompanyMaster.POC_Email', '')
+            if not contact_details['website']:
+                contact_details['website'] = contact.get('CompanyMaster.Website', '')
+            if not contact_details['phone']:
+                contact_details['phone'] = contact.get('CompanyMaster.Phone', '')
+                
+    except Exception:
+        pass
+    
+    return contact_details
+
 def _convert_results_to_dataframe(result: Dict, logger) -> pd.DataFrame:
     """Convert query execution results to DataFrame format for summarization."""
     try:
@@ -123,31 +160,55 @@ def execute_enhanced_query_with_summary(user_query: str, config=None, logger=Non
             summary_df = _convert_results_to_dataframe(result, logger)
             
             if not summary_df.empty:
-                # Generate enhanced summary using the locally enhanced function
-                enhanced_summary = summarize_locally_enhanced(
-                    summary_df,
-                    query=user_query,
-                    lookups=None,  # Could be extracted from decomposition if needed
-                    max_rows=15,
-                    base_path=str(base_path)
-                )
+                # Generate company contact list instead of enhanced summary
+                from src.query_engine.summarize_result import load_company_summary
                 
-                # Add summary to results
-                result['enhanced_summary'] = enhanced_summary
-                logger.info("✅ Enhanced summary generated successfully")
+                company_list = []
+                for _, row in summary_df.iterrows():
+                    company_ref_no = row.get('CompanyRefNo', '')
+                    company_name = row.get('CompanyName', '')
+                    
+                    # Load detailed company information
+                    company_info = load_company_summary(company_ref_no, str(base_path)) if company_ref_no else None
+                    
+                    # Extract contact information
+                    contact_info = _extract_company_contact_info(company_info) if company_info else {
+                        'email': '', 'website': '', 'phone': ''
+                    }
+                    
+                    company_entry = {
+                        'company_ref_no': company_ref_no,
+                        'company_name': company_name,
+                        'email': contact_info['email'],
+                        'website': contact_info['website'],
+                        'phone': contact_info['phone']
+                    }
+                    company_list.append(company_entry)
+                    
+                    logger.debug(f"Added company: {company_name} ({company_ref_no}) - Email: {contact_info['email']}, Website: {contact_info['website']}")
                 
-                # Log the summary for visibility (first 10 lines)
-                logger.info("\n" + "📋 ENHANCED SUMMARY (Preview):")
+                # Add company list to results instead of enhanced_summary
+                result['company_contacts'] = company_list
+                logger.info(f"✅ Company contact list generated with {len(company_list)} companies")
+                
+                # Log the company list for visibility
+                logger.info("\n" + "📋 COMPANY CONTACT LIST:")
                 logger.info("-" * 50)
-                summary_lines = enhanced_summary.split('\n')
-                for line in summary_lines[:10]:
-                    logger.info(line)
-                if len(summary_lines) > 10:
-                    logger.info("... (summary continues)")
+                for i, company in enumerate(company_list[:10], 1):
+                    logger.info(f"{i}. {company['company_name']} ({company['company_ref_no']})")
+                    if company['email']:
+                        logger.info(f"   Email: {company['email']}")
+                    if company['website']:
+                        logger.info(f"   Website: {company['website']}")
+                    if company['phone']:
+                        logger.info(f"   Phone: {company['phone']}")
+                    logger.info("")
+                if len(company_list) > 10:
+                    logger.info(f"... and {len(company_list) - 10} more companies")
                     
             else:
-                logger.warning("⚠️ No results to summarize")
-                result['enhanced_summary'] = "No matching companies were found for the given query."
+                logger.warning("⚠️ No results to process")
+                result['company_contacts'] = []
                 
         except Exception as e:
             logger.error(f"❌ Summary generation failed: {e}")
@@ -163,7 +224,9 @@ def execute_enhanced_query_with_summary(user_query: str, config=None, logger=Non
         logger.info(f"🤖 LLM Validation Used: {result.get('llm_validation_used', False)}")
         logger.info(f"🔍 Search Strategy: {result.get('strategy', 'Unknown')}")
         logger.info(f"📈 Total Results: {result.get('results', {}).get('companies_count', 0)} companies, {result.get('results', {}).get('products_count', 0)} products")
-        logger.info(f"📝 Enhanced Summary: {'Generated' if 'enhanced_summary' in result else 'Failed'}")
+        logger.info(f"📝 Company Contacts: {'Generated' if 'company_contacts' in result else 'Failed'}")
+        if 'company_contacts' in result:
+            logger.info(f"📞 Contact Info Available: {len(result['company_contacts'])} companies")
         logger.info("=" * 80)
         
         return result

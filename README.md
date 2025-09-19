@@ -10,19 +10,13 @@ Setup your virtual env
 ### Install sentence transformers & llama-cpp-python
 
 - python.exe .\models\get_sentence_transformer_models.py
-- .\flat-file-approach\tools\setup_llama_and_models.ps1
+- .\tools\setup_llama_and_models.ps1
 
 
 **Note**
 ---
 You can create Symlinks for the model if space issue is there
 For this u need to be admin in powershell
-
-```
-New-Item -ItemType SymbolicLink `
-  -Path "mistral-7b-instruct-v0.2.Q5_K_S.gguf" `
-  -Target "D:\CBDPIT\models\mistral-7b-instruct-v0.2.Q5_K_S.gguf"
-```
 
 ```
 New-Item -ItemType SymbolicLink `

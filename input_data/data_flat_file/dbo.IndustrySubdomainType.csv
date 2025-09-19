@@ -1,0 +1,11 @@
+﻿Id,IndustrySubDomainName,CreatedDate,CreatedBy,IsActive
+1,Power Distribution,2025-08-03T13:55:33.080000,admin,True
+2,Automobile Parts,2025-08-03T13:55:33.080000,admin,True
+3,Satellites,2025-08-03T13:55:33.080000,admin,True
+4,5G Infrastructure,2025-08-03T13:55:33.080000,admin,True
+5,Cloud Computing,2025-08-03T13:55:33.080000,admin,True
+6,Power Distribution,2025-08-03T13:55:40.137000,admin,True
+7,Automobile Parts,2025-08-03T13:55:40.137000,admin,True
+8,Satellites,2025-08-03T13:55:40.137000,admin,True
+9,5G Infrastructure,2025-08-03T13:55:40.137000,admin,True
+10,Cloud Computing,2025-08-03T13:55:40.137000,admin,True

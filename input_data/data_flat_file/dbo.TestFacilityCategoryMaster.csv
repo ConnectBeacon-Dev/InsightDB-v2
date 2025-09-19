@@ -1,0 +1,6 @@
+﻿Id,CategoryName,IsActive
+1,Electrical Testing,True
+2,Mechanical Testing,True
+3,Thermal Testing,True
+4,RF Testing,True
+5,Software QA,True
