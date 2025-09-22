@@ -1,132 +1,138 @@
-import os
-import sys
-import subprocess
+#!/usr/bin/env python
+# Run me from inside InsightDB-v2
+# Creates a project-local conda env at .conda/llcpp and installs everything.
+
+import os, sys, shutil, subprocess
 from pathlib import Path
 
-# ----------------------------
-# Paths
-# ----------------------------
-BASE_DIR                = Path.cwd()
-VENV_PYTHON             = BASE_DIR / "venv" / "Scripts" / "python.exe"  # after setup_env.ps1
+PROJECT_ROOT = Path.cwd()
+REQ = PROJECT_ROOT / "requirements.txt"
+if not REQ.exists():
+    print("❌ requirements.txt not found. Run this from inside your InsightDB-v2 folder.")
+    sys.exit(1)
 
-PS_SETUP_ENV            = Path("setup_env.ps1")
-PS_SETUP_LLAMA_MODELS   = Path("tools") / "setup_llama_and_models.ps1"
+ENV_DIR = PROJECT_ROOT / ".conda" / "llcpp"       # project-local env path
+PY_VER = "3.11"
+CHANNEL = "conda-forge"                           # avoids Anaconda TOS
 
-PY_GET_ST_MODELS        = Path("models") / "get_sentence_transformer_models.py"
-PY_GET_QWEN_MODELS      = Path("models") / "get_qwen_model.py"
+QWEN_FILE = PROJECT_ROOT / "models" / "Qwen2.5-14B-Instruct-Q4_K_M.gguf"
+QWEN_FETCH = ["python", "models/get_qwen_model.py"]
+ST_DIR = PROJECT_ROOT / "models" / "sentence-transformers" / "sentence-transformers_all-mpnet-base-v2"
+ST_FETCH = ["python", "models/get_sentence_transformer_models.py"]
 
-QWEN_GGUF_PATH          = Path("models") / "Qwen2.5-14B-Instruct-Q4_K_M.gguf"
-ST_DIR_PATH             = Path("models") / "sentence-transformers" / "sentence-transformers_all-mpnet-base-v2"
-
-PY_LOAD_CONFIG          = Path("src") / "load_config.py"
-PY_GEN_GROUPED_CSVS_MOD = "src.input_data_processing.generate_grouped_csvs_with_data"
-PY_TEST_GENERATED_CSVS  = Path("test_generated_csvs.py")
-PY_COMPANY_INDEX_CREATE = Path("src") / "company_index" / "company_search_api.py"
-
-# ----------------------------
-# Helpers
-# ----------------------------
-def run_powershell(script_path: Path) -> None:
-    print(f"\n[PS] Running: {script_path}")
-    result = subprocess.run(
-        ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script_path)],
-        check=False,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"PowerShell script failed: {script_path}")
-
-def run_python(pyfile_or_mod, args=None, as_module=False) -> None:
-    if not VENV_PYTHON.exists():
-        raise FileNotFoundError(f"Virtual env python not found: {VENV_PYTHON}")
-
-    args = args or []
-    if as_module:
-        cmd = [str(VENV_PYTHON), "-m", str(pyfile_or_mod), *args]
-        shown = f"{VENV_PYTHON} -m {pyfile_or_mod} " + " ".join(args)
+def run(cmd, check=True, capture=False):
+    print(f"➡️  {' '.join(str(c) for c in cmd)}")
+    if capture:
+        p = subprocess.run(cmd, check=check, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        print(p.stdout, end="")
+        return p.stdout
     else:
-        cmd = [str(VENV_PYTHON), str(pyfile_or_mod), *args]
-        shown = f"{VENV_PYTHON} {pyfile_or_mod} " + " ".join(args)
+        return subprocess.run(cmd, check=check)
 
-    print(f"\n[PY] Running: {shown}")
-    result = subprocess.run(cmd, check=False)
-    if result.returncode != 0:
-        raise RuntimeError(f"Python step failed: {shown} (exit={result.returncode})")
+def detect_conda_exe():
+    # 1) Ask PATH
+    try:
+        base = run(["conda", "info", "--base"], capture=True).strip().splitlines()[-1].strip()
+    except Exception:
+        base = ""
+    candidates = []
+    if base:
+        if os.name == "nt":
+            candidates.append(Path(base) / "Scripts" / "conda.exe")
+        else:
+            candidates.append(Path(base) / "bin" / "conda")
+    # 2) Common Windows/system paths
+    if os.name == "nt":
+        candidates += [
+            Path(os.environ.get("USERPROFILE", "")) / "Miniconda3" / "Scripts" / "conda.exe",
+            Path("C:/ProgramData/miniconda3/Scripts/conda.exe"),
+            Path("C:/ProgramData/Miniconda3/Scripts/conda.exe"),
+        ]
+    # 3) Last resort: where/which
+    if os.name == "nt":
+        try:
+            out = run(["where", "conda"], capture=True)
+            for line in out.splitlines():
+                p = Path(line.strip())
+                if p.exists():
+                    candidates.append(p)
+        except Exception:
+            pass
+    else:
+        try:
+            out = run(["which", "conda"], capture=True).strip()
+            if out:
+                candidates.append(Path(out))
+        except Exception:
+            pass
 
-def run_venv_python(args: list[str], show: str) -> None:
-    if not VENV_PYTHON.exists():
-        raise FileNotFoundError(f"Virtual env python not found: {VENV_PYTHON}")
-    print(f"\n[PY] Running: {show}")
-    result = subprocess.run([str(VENV_PYTHON), *args], check=False)
-    if result.returncode != 0:
-        raise RuntimeError(f"Python step failed: {show} (exit={result.returncode})")
+    for c in candidates:
+        if c and c.exists():
+            return str(c)
+    return None
 
-def run_python_file(pyfile: Path, args: list[str] | None = None) -> None:
-    if not pyfile.exists():
-        raise FileNotFoundError(f"Python file not found: {pyfile}")
-    args = args or []
-    shown = f"{VENV_PYTHON} {pyfile} " + " ".join(args)
-    run_venv_python([str(pyfile), *args], shown)
-    
-def run_python_module(module_path: str, args: list[str] | None = None) -> None:
-    """Run a Python module (inside venv) using -m package.module syntax."""
-    args = args or []
-    shown = f"{VENV_PYTHON} -m {module_path} " + " ".join(args)
-    print(f"\n[PY] Running: {shown}")
-    result = subprocess.run([str(VENV_PYTHON), "-m", module_path, *args], check=False)
-    if result.returncode != 0:
-        raise RuntimeError(f"Python step failed: {shown} (exit={result.returncode})")
+def force_rmtree(p: Path):
+    if not p.exists():
+        return
+    def onerror(func, path, exc_info):
+        try:
+            os.chmod(path, 0o700)
+        except Exception:
+            pass
+        try:
+            func(path)
+        except Exception:
+            pass
+    shutil.rmtree(p, onerror=onerror)
 
-def dir_has_st_model(path: Path) -> bool:
-    return (path / "config.json").exists() and (
-        (path / "pytorch_model.bin").exists() or (path / "model.safetensors").exists()
-    )
-
-# ----------------------------
-# Main flow
-# ----------------------------
 def main():
-    # Installation
-    run_powershell(PS_SETUP_ENV)
-    run_powershell(PS_SETUP_LLAMA_MODELS)
+    conda_exe = detect_conda_exe()
+    if not conda_exe:
+        print("❌ Could not find conda. Please install Miniconda (user or system) first.")
+        sys.exit(1)
+    print(f"✅ Using Conda: {conda_exe}")
 
-    # Sentence-Transformer models
-    run_python(PY_GET_ST_MODELS)
+    # Fresh local env
+    print(f"\n== Creating project-local env at {ENV_DIR} ==")
+    # Clean any leftovers (safe; inside your repo)
+    force_rmtree(ENV_DIR.parent)  # removes .conda entirely if present
+    ENV_DIR.parent.mkdir(parents=True, exist_ok=True)
 
-    # Qwen check + download
-    print(f"\n[CHK] Qwen GGUF present? {QWEN_GGUF_PATH}")
-    if QWEN_GGUF_PATH.exists():
-        print(f"[OK] Qwen model already present: {QWEN_GGUF_PATH}")
+    # Create env with python
+    run([conda_exe, "create", "-p", str(ENV_DIR), "-c", CHANNEL, f"python={PY_VER}", "-y"])
+
+    # Install llama-cpp-python via conda (prebuilt)
+    run([conda_exe, "install", "-p", str(ENV_DIR), "-c", CHANNEL, "llama-cpp-python", "-y"])
+
+    # Pip requirements inside the env (no activation needed)
+    run([conda_exe, "run", "-p", str(ENV_DIR), "python", "-m", "pip", "install", "-r", str(REQ)])
+
+    # Models
+    if not QWEN_FILE.exists():
+        print("• Qwen model missing → fetching...")
+        run([conda_exe, "run", "-p", str(ENV_DIR)] + QWEN_FETCH)
     else:
-        print(f"[MISS] Qwen model not found → running: {PY_GET_QWEN_MODELS}")
-        run_python(PY_GET_QWEN_MODELS)
-        if not QWEN_GGUF_PATH.exists():
-            raise RuntimeError(f"Qwen GGUF still missing after download: {QWEN_GGUF_PATH}")
-        print(f"[OK] Qwen model ready at: {QWEN_GGUF_PATH}")
+        print(f"• Found Qwen model: {QWEN_FILE}")
 
-    # Sentence-Transformers check
-    print(f"\n[CHK] Sentence-Transformers model folder: {ST_DIR_PATH}")
-    if dir_has_st_model(ST_DIR_PATH):
-        print(f"[OK] ST model is present and valid.")
+    if not ST_DIR.exists():
+        print("• Sentence-Transformer missing → fetching...")
+        run([conda_exe, "run", "-p", str(ENV_DIR)] + ST_FETCH)
     else:
-        raise RuntimeError(f"Sentence-Transformers model missing or incomplete at: {ST_DIR_PATH}")
+        print(f"• Found Sentence-Transformer: {ST_DIR}")
 
-    # run as module (so package imports like "from src..." work)
-    run_python_module("src.load_config")
+    # Smoke test
+    run([conda_exe, "run", "-p", str(ENV_DIR), "python", "-c",
+         "import llama_cpp,sys; print('llama-cpp-python OK', sys.version)"])
 
-    # generate grouped CSVs
-    run_python_module("src.input_data_processing.generate_grouped_csvs_with_data")
-
-    # test generated CSVs (this is a standalone script, so file mode is fine)
-    run_python_file(PY_TEST_GENERATED_CSVS)
-
-    # company index creation (must be module mode for src imports to work)
-    run_python_module("src.company_index.company_search_api", ["create"])
-
-    print("\n✅ All steps completed successfully.")
+    print("\n🎉 All set.")
+    print("Run your app (no activation needed):")
+    print(f'  "{conda_exe}" run -p "{ENV_DIR}" python src\\company_index\\company_search_api.py create')
+    print("\nIf you prefer activation for an interactive session:")
+    if os.name == "nt":
+        base = Path(conda_exe).parent.parent
+        print(f'  call "{base}\\condabin\\conda.bat" activate "{ENV_DIR}"')
+    else:
+        print(f'  source "$(conda info --base)/etc/profile.d/conda.sh" && conda activate "{ENV_DIR}"')
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"\n❌ Automation failed: {e}")
-        sys.exit(1)
+    main()
