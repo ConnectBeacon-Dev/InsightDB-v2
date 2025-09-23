@@ -1,0 +1,228 @@
+{
+  "location": {
+    "groups": [["CompanyProfile", "ContactInfo"]],
+    "keywords": {
+      "city": ["city", "town", "municipality", "metro", "urban", "location"],
+      "state": ["state", "province", "region"],
+      "district": ["district", "county", "area", "zone"],
+      "pincode": ["pincode", "pin", "postal", "zip", "zipcode", "postal code"],
+      "country": ["country", "nation", "nationality"],
+      "address": ["address", "street", "road", "block", "lane", "building", "premises", "headquarter", "hq", "office"]
+    },
+    "synonyms": ["where", "located", "based", "situated", "operating from", "head office", "registered office"],
+    "templates": {
+      "summary": "Located in {CityName}, {State}, {CountryName}",
+      "detailed": "{CompanyName} is located at {Address}, {CityName}, {District}, {State} - {PinCode}, {CountryName}"
+    },
+    "confidence_boosters": ["geography", "place", "region", "area"]
+  },
+
+  "contact": {
+    "groups": [["CompanyProfile", "ContactInfo"]],
+    "keywords": {
+      "email": ["email", "mail", "e-mail", "electronic mail", "contact email", "poc email"],
+      "phone": ["phone", "mobile", "contact number", "telephone", "cell", "landline", "contact"],
+      "website": ["website", "site", "url", "www", "web", "portal", "domain", "online presence"]
+    },
+    "synonyms": ["reach", "contact", "communicate", "get in touch", "connect"],
+    "templates": {
+      "summary": "Email: {EmailId}, Phone: {Phone}, Website: {Website}",
+      "email_only": "Contact: {EmailId}",
+      "phone_only": "Phone: {Phone}",
+      "website_only": "Website: {Website}"
+    },
+    "confidence_boosters": ["communication", "reach out", "details"]
+  },
+
+  "basic_info": {
+    "groups": [["CompanyProfile", "BasicInfo"]],
+    "keywords": {
+      "registration": ["cin", "pan", "registration", "gst", "incorporation", "company number"],
+      "name": ["name", "company name", "organization", "firm"],
+      "status": ["status", "active", "incorporated", "dormant", "struck off"],
+      "class": ["class", "public", "private", "opc", "one person company"],
+      "listing": ["listed", "unlisted", "sme", "stock exchange"]
+    },
+    "synonyms": ["company details", "basic info", "incorporation", "registration details"],
+    "templates": {
+      "summary": "{CompanyName} (CIN: {CINNumber}, PAN: {Pan})",
+      "detailed": "{CompanyName} - {CompanyClass} company, Status: {CompanyStatus}, CIN: {CINNumber}"
+    },
+    "confidence_boosters": ["legal", "official", "registered"]
+  },
+
+  "classification": {
+    "groups": [["CompanyProfile", "Classification"]],
+    "keywords": {
+      "scale": ["scale", "size", "small scale", "medium scale", "large scale", "micro", "msme", "sme", "startup"],
+      "category": ["category", "type", "classification"],
+      "organization_type": ["organization type", "org type", "ownership", "structure"]
+    },
+    "synonyms": ["classification", "categorization", "type of company", "business type"],
+    "templates": {
+      "summary": "Scale: {CompanyScale}, Type: {Organization_Type}",
+      "detailed": "{CompanyName} is a {CompanyScale} scale {Organization_Type} in {CompanyCategory}"
+    },
+    "confidence_boosters": ["business model", "enterprise"]
+  },
+
+  "certifications": {
+    "groups": [["QualityAndCompliance", "Certifications"]],
+    "keywords": {
+      "iso": ["iso", "iso 9001", "iso 27001", "iso 14001", "quality management"],
+      "certification": ["certified", "certificate", "certification", "accreditation", "standard"],
+      "nabl": ["nabl", "accredited", "laboratory accreditation"],
+      "quality": ["quality", "compliance", "standards"]
+    },
+    "synonyms": ["certified", "accredited", "standards", "compliance", "quality assurance"],
+    "templates": {
+      "summary": "Certifications: {Cert_Type}",
+      "detailed": "Certified with {Certification_Type} (Certificate No: {Certificate_No})"
+    },
+    "confidence_boosters": ["quality", "standards", "compliance", "accredited"]
+  },
+
+  "products_services": {
+    "groups": [["ProductsAndServices", "Products"]],
+    "keywords": {
+      "product": ["product", "products", "make", "manufacture", "build", "produce", "manufacturing"],
+      "service": ["service", "services", "offer", "provide"],
+      "hsn": ["hsn", "hsn code", "harmonized system"],
+      "nsn": ["nsn", "nato stock number"],
+      "capacity": ["capacity", "production capacity", "manufacturing capacity"]
+    },
+    "synonyms": ["offerings", "portfolio", "manufacturing", "production", "what they make", "what they do"],
+    "templates": {
+      "summary": "Products: {ProductName}",
+      "detailed": "{ProductName} - {ProductDesc} (HSN: {HSNCode})"
+    },
+    "confidence_boosters": ["manufacturing", "production", "offerings", "portfolio"]
+  },
+
+  "business_domain": {
+    "groups": [["BusinessDomain", "CoreExpertise"], ["BusinessDomain", "Industry"]],
+    "keywords": {
+      "expertise": ["expertise", "specialization", "capability", "competency", "core strength"],
+      "industry": ["industry", "sector", "domain", "vertical", "market"],
+      "technical": ["electrical", "mechanical", "software", "electronics", "aerospace", "defence", "automotive", "power", "energy"],
+      "subdomain": ["subdomain", "sub-domain", "niche", "specialization"]
+    },
+    "synonyms": ["specialization", "focus area", "domain expertise", "technical capability"],
+    "templates": {
+      "summary": "Expertise: {CoreExpertiseName}, Industry: {IndustryDomainType}",
+      "detailed": "Specialized in {CoreExpertiseName} for {IndustryDomainType} - {IndustrySubDomainName}"
+    },
+    "confidence_boosters": ["technical", "specialization", "domain", "vertical"]
+  },
+
+  "testing_capabilities": {
+    "groups": [["QualityAndCompliance", "TestingCapabilities"]],
+    "keywords": {
+      "testing": ["testing", "test", "lab", "laboratory", "facility"],
+      "categories": ["environmental test", "vibration test", "emi emc", "high voltage test", "electrical test"],
+      "nabl_test": ["nabl accredited", "accredited testing", "certified lab"]
+    },
+    "synonyms": ["test facilities", "laboratory capabilities", "testing services", "test lab"],
+    "templates": {
+      "summary": "Testing: {CategoryName} - {SubCategoryName}",
+      "detailed": "NABL Accredited: {IsNabIAccredited}, Test Categories: {CategoryName}"
+    },
+    "confidence_boosters": ["laboratory", "testing", "validation", "certification"]
+  },
+
+  "rd_capabilities": {
+    "groups": [["ResearchAndDevelopment", "RDCapabilities"]],
+    "keywords": {
+      "research": ["research", "r&d", "rd", "development", "innovation", "lab"],
+      "technical_areas": ["electrical", "mechanical", "materials", "embedded", "rf", "power systems", "electronics"],
+      "lab_types": ["electrical lab", "power lab", "hv lab", "high voltage lab"]
+    },
+    "synonyms": ["research and development", "innovation", "technical development", "r&d facilities"],
+    "templates": {
+      "summary": "R&D: {RDCategoryName} - {RDSubCategoryName}",
+      "detailed": "R&D Capabilities in {RDCategoryName}, NABL Accredited: {IsNabIAccredited}"
+    },
+    "confidence_boosters": ["innovation", "development", "research", "technical"]
+  },
+
+  "defence_sector": {
+    "groups": [["ProductsAndServices", "DefenceSector"]],
+    "keywords": {
+      "defence": ["defence", "defense", "military", "armed forces"],
+      "platform": ["platform", "defence platform", "military platform"],
+      "pta": ["pta", "platform technology area", "tech area", "technology area"]
+    },
+    "synonyms": ["military", "defense sector", "armed forces", "security"],
+    "templates": {
+      "summary": "Defence Platform: {Name_of_Defence_Platform}",
+      "detailed": "Defence Platform: {Name_of_Defence_Platform}, Tech Area: {PTAName}"
+    },
+    "confidence_boosters": ["military", "security", "armed forces"]
+  },
+
+  "export_info": {
+    "groups": [["ProductsAndServices", "ExportInfo"]],
+    "keywords": {
+      "export": ["export", "exports", "exported", "international", "overseas"],
+      "items": ["items", "products", "goods", "commodities"]
+    },
+    "synonyms": ["international business", "overseas sales", "global market"],
+    "templates": {
+      "summary": "Exports: {ItemExported}",
+      "detailed": "Export Products: {ItemExported}"
+    },
+    "confidence_boosters": ["international", "global", "overseas"]
+  },
+
+  "financial_metrics": {
+    "groups": [["FinancialMetrics", "Revenue"]],
+    "keywords": {
+      "revenue": ["revenue", "turnover", "sales", "income"],
+      "financial": ["financial", "earnings", "profit", "amount"],
+      "year": ["year", "annual", "yearly", "fy"]
+    },
+    "synonyms": ["financials", "business performance", "sales figures"],
+    "templates": {
+      "summary": "Turnover: {Amount} (FY: {YearId})",
+      "detailed": "Annual Revenue: {Amount} for Financial Year {YearId}"
+    },
+    "confidence_boosters": ["financial", "business performance", "metrics"]
+  },
+
+  "intent_resolution_rules": {
+    "multi_intent_handling": {
+      "priority_order": ["basic_info", "location", "contact", "products_services", "business_domain", "certifications"],
+      "combination_rules": {
+        "location_contact": "Combined location and contact information",
+        "products_certifications": "Product portfolio with quality certifications",
+        "business_domain_rd": "Business domain expertise with R&D capabilities"
+      }
+    },
+    "confidence_scoring": {
+      "keyword_match_weight": 0.4,
+      "synonym_match_weight": 0.3,
+      "confidence_booster_weight": 0.2,
+      "context_relevance_weight": 0.1
+    },
+    "fallback_intents": ["basic_info", "products_services"],
+    "minimum_confidence_threshold": 0.3
+  },
+
+  "query_preprocessing": {
+    "normalization": {
+      "remove_stopwords": ["the", "a", "an", "is", "are", "was", "were", "what", "where", "how", "who"],
+      "expand_abbreviations": {
+        "r&d": "research and development",
+        "msme": "micro small medium enterprise",
+        "sme": "small medium enterprise",
+        "hq": "headquarter",
+        "poc": "point of contact"
+      }
+    },
+    "entity_extraction": {
+      "company_indicators": ["company", "ltd", "limited", "pvt", "private", "inc", "corporation"],
+      "location_indicators": ["in", "at", "from", "based", "located"],
+      "action_indicators": ["make", "manufacture", "produce", "provide", "offer", "specialize"]
+    }
+  }
+}

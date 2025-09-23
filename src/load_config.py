@@ -212,7 +212,8 @@ def load_config(config_path="config/config.json"):
         'generated_embedding_store', 'domain_mapped_csv_store', 'company_mapped_data',
         'text_cols', 'min_score', 'exact_only', 'prefer_exact',
         'boost_exact', 'columns', 'show_source', 'sentence_transformer_model_name', 
-        'sentence_transformer_model_from_net', 'batch_size', 'qwen_model_path'
+        'sentence_transformer_model_from_net', 'batch_size', 'qwen_model_path',
+        'intent_mapping'
     ]
     missing_keys = [key for key in required_keys if key not in config]
     if missing_keys:
@@ -263,7 +264,8 @@ def load_config(config_path="config/config.json"):
 
     # Validate top-level parameters
     for key in ['table_relations', 'flat_file_data', 'domain_mapping', 'generated_embedding_store', 'domain_mapped_csv_store',
-                'sentence_transformer_model_name', 'sentence_transformer_model_from_net', 'qwen_model_path']:
+                'sentence_transformer_model_name', 'sentence_transformer_model_from_net', 'qwen_model_path',
+                'intent_mapping']:
         if not isinstance(config[key], str):
             logger.error(f"Invalid type for {key}: expected string, got {type(config[key]).__name__}")
             raise TypeError(f"Invalid type for {key}: expected string, got {type(config[key]).__name__}")
@@ -324,12 +326,16 @@ def load_config(config_path="config/config.json"):
     config['table_relations'] = Path(config['table_relations'])
     config['flat_file_data'] = Path(config['flat_file_data'])
     config['domain_mapping'] = Path(config['domain_mapping'])
+    config['intent_mapping'] = Path(config['intent_mapping'])
     logger.debug("Converted paths to Path objects")
 
     # Validate file and directory existence (only for critical paths)
     if not os.path.isfile(config['domain_mapping']):
         logger.error(f"Domain mapping file not found at: {config['domain_mapping']}")
         raise FileNotFoundError(f"Domain mapping file not found at: {config['domain_mapping']}")
+    if not os.path.isfile(config['intent_mapping']):
+        logger.error(f"Intent mapping file not found at: {config['intent_mapping']}")
+        raise FileNotFoundError(f"Intent mapping file not found at: {config['intent_mapping']}")
     if not os.path.isfile(config['table_relations']):
         logger.error(f"Table relations file not found at: {config['table_relations']}")
         raise FileNotFoundError(f"Table relations file not found at: {config['table_relations']}")
@@ -369,6 +375,7 @@ def get_processing_params(config):
     print(config)
     return {
         'domain_mapping': config['domain_mapping'],
+        'intent_mapping': config['intent_mapping'],
         'table_relations': config['table_relations'],
         'tables_dir': config['tables_dir'],
         'outdir': config.get('outdir', config.get('domain_mapped_csv_store')),

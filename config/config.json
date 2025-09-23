@@ -20,6 +20,7 @@
   "table_relations": "input_data\\table_relations\\relations.json",
   "flat_file_data": "input_data\\data_flat_file",
   "domain_mapping": "config\\domain_mapping.json",
+  "intent_mapping": "config\\intent_mapping.json",
   "tables_dir": "input_data\\data_flat_file",
   "debug": true,
   "query": null,
