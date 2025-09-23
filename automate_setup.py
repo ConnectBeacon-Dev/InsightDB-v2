@@ -108,17 +108,17 @@ def main():
     run([conda_exe, "run", "-p", str(ENV_DIR), "python", "-m", "pip", "install", "-r", str(REQ)])
 
     # Models
-    if not QWEN_FILE.exists():
-        print("• Qwen model missing → fetching...")
-        run([conda_exe, "run", "-p", str(ENV_DIR)] + QWEN_FETCH)
-    else:
-        print(f"• Found Qwen model: {QWEN_FILE}")
+    #if not QWEN_FILE.exists():
+    #    print("• Qwen model missing → fetching...")
+    #    run([conda_exe, "run", "-p", str(ENV_DIR)] + QWEN_FETCH)
+    #else:
+    #    print(f"• Found Qwen model: {QWEN_FILE}")
 
-    if not ST_DIR.exists():
-        print("• Sentence-Transformer missing → fetching...")
-        run([conda_exe, "run", "-p", str(ENV_DIR)] + ST_FETCH)
-    else:
-        print(f"• Found Sentence-Transformer: {ST_DIR}")
+    #if not ST_DIR.exists():
+    #    print("• Sentence-Transformer missing → fetching...")
+    #    run([conda_exe, "run", "-p", str(ENV_DIR)] + ST_FETCH)
+    #else:
+    #    print(f"• Found Sentence-Transformer: {ST_DIR}")
 
     # Smoke test
     run([conda_exe, "run", "-p", str(ENV_DIR), "python", "-c",
@@ -126,7 +126,7 @@ def main():
 
     print("\n🎉 All set.")
     print("Run your app (no activation needed):")
-    print(f'  "{conda_exe}" run -p "{ENV_DIR}" python src\\company_index\\company_search_api.py create')
+    #print(f'  "{conda_exe}" run -p "{ENV_DIR}" python src\\company_index\\company_search_api.py create')
     print("\nIf you prefer activation for an interactive session:")
     if os.name == "nt":
         base = Path(conda_exe).parent.parent

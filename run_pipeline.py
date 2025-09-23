@@ -49,8 +49,8 @@ if not CONDA_EXE:
 
 COMMANDS = [
     ["python", "src/load_config.py"],
-    ["python", "-m", "src.input_data_processing.generate_grouped_csvs_with_data"],
-    ["python", "-m", "src.company_index.company_search_api", "create"],
+    ["python", "-m", "src.company_index.create_integrated_search_file"],
+    ["python", "-m", "src.company_index.company_tfidf_api"],
     ["python", "-m", "src.query_engine.enhanced_query_with_summary"],
 ]
 

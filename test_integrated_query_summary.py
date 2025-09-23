@@ -210,44 +210,42 @@ def main() -> None:
     enable_llm_validation = not args.no_llm_validation
     test_query = args.query
 
-    logger.info("🧪 TESTING INTEGRATED QUERY EXECUTION WITH SUMMARIZATION")
-    logger.info("=" * 80)
+    logger.debug("🧪 TESTING INTEGRATED QUERY EXECUTION WITH SUMMARIZATION")
+    logger.debug("=" * 80)
     logger.info(f"Test Query: '{test_query}'")
     # Show env info
-    logger.info(f"📦 CONDA_PREFIX: {os.environ.get('CONDA_PREFIX', 'none')}")
-    logger.info(f"📦 CONDA_DEFAULT_ENV: {os.environ.get('CONDA_DEFAULT_ENV', 'none')}")
-    logger.info("=" * 80)
+    logger.debug(f"📦 CONDA_PREFIX: {os.environ.get('CONDA_PREFIX', 'none')}")
+    logger.debug(f"📦 CONDA_DEFAULT_ENV: {os.environ.get('CONDA_DEFAULT_ENV', 'none')}")
+    logger.debug("=" * 80)
 
     try:
         result = execute_enhanced_query_with_summary(
             user_query=test_query,
             config=config,
             logger=logger,
-            enable_llm_validation=enable_llm_validation,
         )
 
         logger.info("\n🎯 FINAL INTEGRATED RESULTS:")
-        logger.info("=" * 60)
 
         if isinstance(result, dict) and "error" in result:
             logger.error(f"❌ Query failed: {result['error']}")
         else:
-            logger.info("✅ Query executed successfully")
+            logger.debug("✅ Query executed successfully")
             if isinstance(result, dict):
                 logger.info(f"📊 Confidence: {result.get('confidence', 0):.2f}")
-                logger.info(f"🤖 LLM Validation: {result.get('llm_validation_used', enable_llm_validation)}")
-                logger.info(f"🔍 Strategy: {result.get('strategy', 'Unknown')}")
                 if result.get('results'):
                     results = result['results']
                     logger.info(f"📈 Companies: {results.get('companies_count', 0)}")
-                    logger.info(f"📈 Products: {results.get('products_count', 0)}")
+                
+                # Show enhanced summary
                 if result.get('enhanced_summary'):
-                    logger.info("\n📋 FINAL ENHANCED SUMMARY:")
-                    logger.info("=" * 50)
+                    logger.info(f"\n📋 Enhanced Summary:")
                     print(result['enhanced_summary'])
-                    logger.info("=" * 50)
-                else:
-                    logger.warning("⚠️ No enhanced summary generated")
+                
+                # Show intent answer (the detailed company information)
+                if result.get('intent_answer'):
+                    logger.info(f"\n🎯 Intent Answer:")
+                    print(result['intent_answer'])
 
         logger.info("\n✅ Integration test completed successfully!")
 

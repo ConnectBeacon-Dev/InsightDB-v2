@@ -190,7 +190,7 @@ def load_config(config_path="config/config.json"):
     """
     # Initialize logging first and get the logger
     logger = setup_logging()
-    logger.info(f"Attempting to load configuration from {config_path}")
+    logger.debug(f"Attempting to load configuration from {config_path}")
     
     # Check if config file exists
     if not os.path.isfile(config_path):
@@ -346,7 +346,7 @@ def load_config(config_path="config/config.json"):
         logger.error(f"Model file not found at: {config['qwen_model_path']}")
         raise FileNotFoundError(f"Model file not found at: {config['qwen_model_path']}")
     logger.debug("All file and directory paths validated successfully")
-    logger.info("Configuration loaded and validated successfully")
+    logger.debug("Configuration loaded and validated successfully")
 
     return config, logger
 

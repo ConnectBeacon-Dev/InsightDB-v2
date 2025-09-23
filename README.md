@@ -1,32 +1,43 @@
-## InsightDB
-Project for making ML Query for Database
+## InsightDB-v2
 
-### Start by creating virutal enviornment
+### Simplified version of search
+- Install conda for windows
+  - For Windows: https://www.youtube.com/watch?v=i0DCPOiNK4A
+  - CLI Steps
+  ```
+  curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o .\miniconda.exe
+  start /wait "" .\miniconda.exe /S
+  del .\miniconda.exe
+  ```
 
-Setup your virtual env
-- cd venv/Script
--  .\venv\Scripts\Activate.ps1
+### Additional commands
+- Activating conda: ```conda activate llcpp```
+- Deactivating conda: ```conda deactivate llcpp```
 
-### Install sentence transformers & llama-cpp-python
+### Steps for setup
+- python .\automate_setup.py
 
-- python.exe .\models\get_sentence_transformer_models.py
-- .\tools\setup_llama_and_models.ps1
+### Steps for preparing the base
+- python .\run_pipeline.py
 
+### Asking Questions
+```
+python test_integrated_query_summary.py --query "location of Company_003"
 
-**Note**
----
-You can create Symlinks for the model if space issue is there
-For this u need to be admin in powershell
+python test_integrated_query_summary.py --query "list all companies in State5"
+
+python test_integrated_query_summary.py --query "Companies having ISO Certificate"
+
+python test_integrated_query_summary.py --query "List Companies having R&D facility"
+
+python test_integrated_query_summary.py --query "List small scale Companies having R&D facility"
+
+python test_integrated_query_summary.py --query "list compnaies making defence equipments"
+
+python test_integrated_query_summary.py --query "List Companies having R&D facility"
+
+python test_integrated_query_summary.py --query "List Companies having R&D facility and testing facility"
+
+python test_integrated_query_summary.py --query "List Companies having R&D facility and testing facility for electrical testing"
 
 ```
-New-Item -ItemType SymbolicLink `
-  -Path "Qwen2.5-14B-Instruct-Q4_K_M.gguf" `
-  -Target "D:\CBDPIT\models\Qwen2.5-14B-Instruct-Q4_K_M.gguf"
-```
-
-### Run the following commands
-cd InsightDB-v2-main
-1. python src\load_config.py
-2. python -m src.input_data_processing.generate_grouped_csvs_with_data
-3. python -m src.company_index.company_search_api  create 
-4. python -m src.query_engine.enhanced_query_with_summary

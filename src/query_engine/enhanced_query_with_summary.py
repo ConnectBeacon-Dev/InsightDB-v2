@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """
-Enhanced Query Execution with Integrated Summarization - Single File Edition
-----------------------------------------------------------------------------
-Self-contained module implementing a hybrid search over an integrated companies
-dataset with optional embedding re-ranker, TTL+mtime-cached config/data, O(1)
-indexes, intent detection, and summarized results.
+Enhanced Query Execution with Integrated Summarization - Single File (TF-IDF + Embeddings + RRF)
+-------------------------------------------------------------------------------------------------
+- Per-company in-memory indexes (location/domain/keywords)
+- Optional Embeddings (sentence-transformers)
+- Optional TF-IDF (scikit-learn), fused with embeddings via Reciprocal Rank Fusion (RRF)
+- Intent-aware output (location → address; domain → core expertise; plus contacts/certs/R&D/testing)
 
-- Optional Embeddings: uses sentence-transformers if available; falls back to lexical.
-- No hard dependency on your project modules; will try to import load_config/logger if present.
-- Works directly with a JSON file at: {company_mapped_data}/integrated_company_search.json
-  where company_mapped_data is provided via config["company_mapped_data"] or defaults to ./processed_data_store
+Configure with:
+  config = {
+      "company_data": "<DIR containing integrated_company_search.json>",
+      "intent_mapping": "<optional path>",
+      "domain_mapping": "<optional path>"
+  }
+
+The integrated JSON can be either:
+  {"companies": [ ... company dicts ... ]}
+or a plain list: [ ... ]
 
 Author: ChatGPT
 """
@@ -44,6 +51,23 @@ except Exception:
     np = None
     SentenceTransformer = None
 
+# ----------------------------- Optional TF-IDF ------------------------------
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    _TFIDF_OK = True
+except Exception:
+    _TFIDF_OK = False
+    TfidfVectorizer = None
+
+try:
+    import joblib
+    from scipy import sparse
+    _SPARSE_OK = True
+except Exception:
+    joblib = None
+    sparse = None
+    _SPARSE_OK = False
+    
 # ----------------------------- Logging helpers ------------------------------
 def _make_default_logger() -> logging.Logger:
     logger = logging.getLogger("enhanced_query_single")
@@ -121,6 +145,7 @@ class Company:
             **self.contact_info.to_dict(),
         }
 
+
 @dataclass
 class QueryMetadata:
     strategy: ProcessingStrategy
@@ -162,8 +187,16 @@ def get_maybe_dotted(d: Dict, dotted: str, default=""):
 
 def as_iter(x):
     if x is None: return []
-    if isinstance(x, (list, tuple, set)): return x
+    if isinstance(x, (list, tuple, set)): return list(x)
     return [x]
+
+def rrf_merge(rank_lists: List[List[int]], k: int = 60) -> List[int]:
+    """Reciprocal Rank Fusion over multiple ranked lists."""
+    score: Dict[int, float] = {}
+    for lst in rank_lists:
+        for r, doc in enumerate(lst):
+            score[doc] = score.get(doc, 0.0) + 1.0 / (k + r + 1)
+    return [d for d, _ in sorted(score.items(), key=lambda kv: -kv[1])]
 
 
 # ====================== Cached Configuration / Data =========================
@@ -201,8 +234,8 @@ class CachedConfigurationManager:
         if key == "intent_mapping":
             v = self.config.get("intent_mapping")
             return Path(v) if v else None
-        if key == "company_mapped_data":
-            v = self.config.get("company_mapped_data", "./processed_data_store")
+        if key == "company_data":
+            v = self.config.get("company_data", "./processed_data_store")
             return Path(v) if v else None
         if key == "domain_mapping":
             v = self.config.get("domain_mapping")
@@ -215,6 +248,25 @@ class CachedConfigurationManager:
     def path_exists(self, key: str) -> bool:
         p = self.get_path(key)
         return bool(p and p.exists())
+
+    def get_tfidf_store(self) -> Optional[Path]:
+        """
+        Resolve TF-IDF store directory.
+        Priority:
+        1) config['company_mapped_data']['tfidf_search_store']
+        2) <company_data>/tfidf_search
+        """
+        try:
+            cm = self.config.get("company_mapped_data", {})
+            if isinstance(cm, dict) and cm.get("tfidf_search_store"):
+                p = Path(cm["tfidf_search_store"])
+                return p if p.exists() else p  # return even if missing; we'll check files later
+        except Exception:
+            pass
+        cdir = self.get_path("company_data")
+        if cdir:
+            return cdir / "tfidf_search"
+        return None
 
     # ---- Cache helpers ----
     def _mtime(self, p: Optional[Path]) -> float:
@@ -270,7 +322,7 @@ class CachedConfigurationManager:
     # ---- Integrated data ----
     def get_integrated_search_data(self) -> Dict[str, Any]:
         with self._cache_lock:
-            cdir = self.get_path("company_mapped_data")
+            cdir = self.get_path("company_data")
             ipath = (cdir / "integrated_company_search.json") if cdir else None
             watched = [("integrated", ipath)]
             if self._integrated_search_cache is not None and self._is_valid("integrated_search", watched):
@@ -348,7 +400,7 @@ class ContactExtractor:
 # =============================== Search Engine ==============================
 
 class OptimizedSearchEngine:
-    """In-memory O(1) indexes + optional embedding vectors (lazy)."""
+    """In-memory O(1) indexes + optional embedding vectors + TF-IDF (lazy)."""
 
     def __init__(self, cm: CachedConfigurationManager, logger: logging.Logger):
         self.cm = cm
@@ -362,11 +414,17 @@ class OptimizedSearchEngine:
         self.idx_cert: Dict[str, List[int]] = {}
         self.idx_kw: Dict[str, List[int]] = {}
 
+        # Cards (shared by embeddings/TF-IDF)
+        self._card_cache: List[str] = []
+
         # Embeddings
         self._embed_enabled = _EMBED_OK
         self._model: Optional[SentenceTransformer] = None
         self._emb_matrix: Optional[Any] = None  # np.ndarray
-        self._card_cache: List[str] = []
+
+        # TF-IDF
+        self._tfidf: Optional[TfidfVectorizer] = None
+        self._tfidf_matrix = None
 
     # --------- Build ---------
     def ensure_built(self):
@@ -399,21 +457,13 @@ class OptimizedSearchEngine:
             bag = " ".join([
                 str(c.get("company_name","")), str(c.get("llm_summary","")),
                 str(c.get("core_expertise","")), str(c.get("industry_domain","")),
+                str(c.get("certifications","")),
                 str(c.get("address","")), str(c.get("city","")), str(c.get("state","")), str(c.get("country",""))
             ])
             for tok in set(tokenize(bag)):
                 self.idx_kw.setdefault(tok, []).append(i)
-        self._built = True
-        self.logger.info(f"[Index] Built over {N} companies")
 
-    # --------- Optional embeddings ---------
-    def _ensure_embeddings(self):
-        if not self._embed_enabled or self._emb_matrix is not None:
-            return
-        if SentenceTransformer is None or np is None:
-            self._embed_enabled = False
-            return
-        # Build compact text cards
+        # Build compact text cards once (shared by embeddings & TF-IDF)
         self._card_cache = []
         for c in self._companies:
             card = " | ".join([
@@ -421,9 +471,21 @@ class OptimizedSearchEngine:
                 str(c.get("llm_summary","")),
                 str(c.get("core_expertise","")),
                 str(c.get("industry_domain","")),
+                str(c.get("certifications","")),
                 str(c.get("city","")), str(c.get("state","")), str(c.get("country",""))
             ]).strip()
             self._card_cache.append(card)
+
+        self._built = True
+        self.logger.info(f"[Index] Built over {N} companies")
+
+    # --------- Optional embeddings ---------
+    def _ensure_embeddings(self):
+        if not self._embed_enabled or self._emb_matrix is not None:
+            return
+        if SentenceTransformer is None or np is None or not self._card_cache:
+            self._embed_enabled = False
+            return
         try:
             self._model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
             X = self._model.encode(self._card_cache, normalize_embeddings=True, show_progress_bar=False)
@@ -434,6 +496,56 @@ class OptimizedSearchEngine:
             self._embed_enabled = False
             self._model = None
             self._emb_matrix = None
+
+    # --------- Optional TF-IDF ---------
+    def _ensure_tfidf(self):
+        """
+        Ensure TF-IDF is ready.
+        Try to LOAD prebuilt files from disk (vectorizer + sparse matrix).
+        If missing or load fails, FIT in-memory from _card_cache.
+        """
+        if self._tfidf_matrix is not None:
+            return
+
+        # Try disk load first
+        tfidf_dir = self.cm.get_tfidf_store()
+        vec_path = mat_path = None
+        if _TFIDF_OK and _SPARSE_OK and tfidf_dir:
+            vec_path = tfidf_dir / "tfidf_vectorizer.joblib"
+            mat_path = tfidf_dir / "tfidf_matrix.npz"
+            if vec_path.exists() and mat_path.exists():
+                try:
+                    self._tfidf = joblib.load(vec_path)  # type: ignore[arg-type]
+                    self._tfidf_matrix = sparse.load_npz(mat_path)  # type: ignore[attr-defined]
+                    self.logger.debug(f"[TF-IDF] Loaded prebuilt index from {tfidf_dir}")
+                    return
+                except Exception as e:
+                    self.logger.warning(f"[TF-IDF] Prebuilt load failed ({e}); will fit in-memory")
+
+        # Fallback: fit in-memory
+        if not _TFIDF_OK:
+            self.logger.warning("[TF-IDF] scikit-learn not available; skipping")
+            return
+
+        if not self._card_cache:
+            self.ensure_built()
+
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer  # local import safety
+            self._tfidf = TfidfVectorizer(
+                analyzer="word",
+                ngram_range=(1, 2),
+                lowercase=True,
+                min_df=1,
+                max_df=0.95,
+                strip_accents="unicode",
+            )
+            self._tfidf_matrix = self._tfidf.fit_transform(self._card_cache)
+            self.logger.info("[TF-IDF] Fitted in-memory vectorizer (no prebuilt files found)")
+        except Exception as e:
+            self.logger.warning(f"[TF-IDF] Disabled ({e})")
+            self._tfidf = None
+            self._tfidf_matrix = None
 
     # --------- Lookups ---------
     def search_by_location(self, token: str) -> List[int]:
@@ -459,7 +571,6 @@ class OptimizedSearchEngine:
         return list(dict.fromkeys(hits))
 
     def rerank_with_embeddings(self, query: str, candidates: List[int], topk: int = 20) -> List[int]:
-        """Cosine-sim rerank over candidates; falls back to identity if embeddings disabled."""
         self.ensure_built()
         self._ensure_embeddings()
         if not self._embed_enabled or not candidates:
@@ -474,6 +585,23 @@ class OptimizedSearchEngine:
             self.logger.warning(f"[Embeddings] Rerank failed, fallback ({e})")
             return candidates[:topk]
 
+    def tfidf_rank(self, query: str, candidates: List[int], topk: int = 50) -> List[int]:
+        self.ensure_built()
+        self._ensure_tfidf()
+        if not _TFIDF_OK or self._tfidf_matrix is None or not candidates:
+            return candidates[:topk]
+        try:
+            import numpy as np  # local import
+            qv = self._tfidf.transform([query])
+            cand_rows = self._tfidf_matrix[candidates]
+            sims = cand_rows @ qv.T   # (len(candidates), 1)
+            sims = np.asarray(sims.todense()).ravel()
+            order = np.argsort(-sims)[:topk]
+            return [candidates[i] for i in order]
+        except Exception as e:
+            self.logger.warning(f"[TF-IDF] Rank failed, fallback ({e})")
+            return candidates[:topk]
+
 
 # =============================== Intent Logic ===============================
 
@@ -482,7 +610,6 @@ class IntentProcessor:
         self.cm = cm
         self.logger = logger
         self._cache: Dict[str, Tuple[str, ...]] = {}
-        # Priority if present in mapping
         self._priority: List[str] = self._load_priority_order()
 
     def _load_priority_order(self) -> List[str]:
@@ -503,10 +630,16 @@ class IntentProcessor:
             return self._cache[q]
         patterns = self.cm.get_intent_patterns()
         scores: Dict[str, int] = {}
+        
         for intent, keys in patterns.items():
             s = sum(1 for k in keys if k in q)
             if s > 0:
                 scores[intent] = s
+        
+        # Special handling for location queries - if query contains "location" word, force location intent
+        if "location" in q:
+            scores["location"] = scores.get("location", 0) + 10  # Boost location score
+        
         if not scores:
             out = ("basic_info", "products_services")
         else:
@@ -514,6 +647,7 @@ class IntentProcessor:
                 self._priority.index(kv[0]) if kv[0] in self._priority else 999, -kv[1]
             ))
             out = tuple([k for k, _ in ordered[:3]])
+        
         self._cache[q] = out
         return out
 
@@ -541,12 +675,10 @@ class ResultProcessor:
             phone=str(d.get("phone","")),
             poc_email=str(d.get("poc_email","")),
         )
-        # Support strings or lists
         def _as_list(x):
             if x is None: return []
             if isinstance(x, (list, tuple, set)): return [str(v) for v in x]
             return [str(x)]
-
         return Company(
             ref_no=ref_no,
             name=str(d.get("company_name","Unknown")),
@@ -567,12 +699,13 @@ class ResultProcessor:
 
 # ============================= Strategy Helpers =============================
 
-def compute_confidence(prefilter_hits: int, embed_used: bool) -> float:
+def compute_confidence(prefilter_hits: int, embed_used: bool, tfidf_used: bool) -> float:
     # Simple bounded heuristic
     base = min(1.0, prefilter_hits / 1000.0)  # lexical evidence
-    if embed_used:
-        return min(1.0, 0.6 * 0.75 + 0.4 * base)  # pretend avg embed score ~0.75
-    return min(1.0, 0.4 * base)
+    uplift = 0.0
+    if embed_used: uplift += 0.35
+    if tfidf_used: uplift += 0.25
+    return min(1.0, 0.4 * base + uplift)
 
 def choose_strategy(intents: Tuple[str, ...], confidence: float, has_loc_or_company: bool) -> ProcessingStrategy:
     if confidence >= 0.5:
@@ -594,6 +727,61 @@ class EnhancedQueryProcessor:
         self.intent = IntentProcessor(self.cm, self.logger)
         self.engine = OptimizedSearchEngine(self.cm, self.logger)
         self.builder = ResultProcessor(self.cm, self.logger)
+
+    def _intent_answer(self, companies: List[Company], intents: Tuple[str, ...], topk: int = 5) -> str:
+        if not companies:
+            return "No matching companies found."
+
+        lines = []
+        show_location = ("location" in intents)
+        # Only show domain info if location is NOT the primary intent
+        show_domain   = not show_location and (("business_domain" in intents) or ("products_services" in intents) or ("basic_info" in intents))
+        
+        # Intent-based display logic
+        self.logger.debug(f"Intent answer - intents: {intents}, show_location: {show_location}, show_domain: {show_domain}")
+
+        for c in companies[:topk]:
+            parts = [f"{c.name} [{c.ref_no}]"]
+
+            if show_location:
+                addr_bits = [c.address, c.city, c.state, c.country]
+                if c.pincode: addr_bits.append(c.pincode)
+                addr = ", ".join([x for x in addr_bits if x])
+                if addr:
+                    parts.append(f"Address: {addr}")
+
+            if show_domain:
+                dom_bits = []
+                if c.domain:
+                    dom_bits.append(f"Core expertise: {c.domain}")
+                if c.industry_domain:
+                    dom_bits.append(f"Industry: {c.industry_domain}")
+                if dom_bits:
+                    parts.append("; ".join(dom_bits))
+
+            if c.contact_info.email or c.contact_info.website or c.contact_info.phone:
+                contact_bits = []
+                if c.contact_info.email:   contact_bits.append(f"Email: {c.contact_info.email}")
+                if c.contact_info.website: contact_bits.append(f"Website: {c.contact_info.website}")
+                if c.contact_info.phone:   contact_bits.append(f"Phone: {c.contact_info.phone}")
+                parts.append(" | ".join(contact_bits))
+
+            if "certifications" in intents and c.certifications:
+                parts.append("Certifications: " + ", ".join(c.certifications))
+
+            if "rd_capabilities" in intents and c.rd_categories:
+                parts.append("R&D: " + ", ".join(c.rd_categories))
+            if "testing_capabilities" in intents and c.testing_categories:
+                parts.append("Testing: " + ", ".join(c.testing_categories))
+
+            lines.append(" - " + "  ·  ".join(parts))
+
+        header = []
+        if show_location: header.append("Location details")
+        elif show_domain: header.append("Core expertise")
+        else: header.append("Company details")
+
+        return f"{' & '.join(header)}:\n" + "\n".join(lines)
 
     # ---- Query flow ----
     def process_query(self, user_query: str, topk: int = 20) -> QueryResult:
@@ -619,42 +807,34 @@ class EnhancedQueryProcessor:
         pre = list(dict.fromkeys(loc_hits + dom_hits + kw_hits))
         timings["prefilter_ms"] = (time.time() - t2) * 1000
 
-        # 3) embeddings (optional) re-rank
+        # 3) embeddings (optional) and TF-IDF on the same candidate pool
         t3 = time.time()
-        ranked = self.engine.rerank_with_embeddings(user_query, pre, topk=topk)
+        emb_ranked = self.engine.rerank_with_embeddings(user_query, pre, topk=topk*2)
+        tfidf_ranked = self.engine.tfidf_rank(user_query, pre, topk=topk*2)
+        fused_ranked = rrf_merge([emb_ranked, tfidf_ranked])[:topk]
         timings["rerank_ms"] = (time.time() - t3) * 1000
-        embed_used = _EMBED_OK and ranked is not None
+        embed_used = _EMBED_OK and len(emb_ranked) > 0
+        tfidf_used = _TFIDF_OK and len(tfidf_ranked) > 0
 
         # 4) confidence & strategy
-        confidence = compute_confidence(len(pre), embed_used)
+        confidence = compute_confidence(len(pre), embed_used, tfidf_used)
         has_loc_or_company = any(x in intents for x in ("location", "company"))
         strategy = choose_strategy(intents, confidence, has_loc_or_company)
 
-        # 5) materialize companies
-        t4 = time.time()
-        if strategy == ProcessingStrategy.EMBEDDING_PRIMARY:
-            ids = ranked[:topk]
-        elif strategy == ProcessingStrategy.HYBRID:
-            ids = ranked[:topk]
+        # 5) select ids
+        if strategy in (ProcessingStrategy.EMBEDDING_PRIMARY, ProcessingStrategy.HYBRID):
+            ids = fused_ranked[:topk]
         elif strategy == ProcessingStrategy.INTENT_ENHANCED:
-            ids = pre[:topk] if pre else kw_hits[:topk]
+            ids = (fused_ranked or pre)[:topk]
         else:
-            ids = kw_hits[:topk]
+            ids = (tfidf_ranked or kw_hits or pre)[:topk]
 
+        # 6) materialize
+        t4 = time.time()
         companies_raw = self.cm.get_integrated_companies()
         companies = [self.builder.from_integrated(companies_raw[i], i) for i in ids if 0 <= i < len(companies_raw)]
-        # small boost for multi-hit
-        seen_counts: Dict[str, int] = {}
-        for tok in tokens:
-            for idx in self.engine.search_by_keywords([tok]):
-                if idx in ids:
-                    key = companies_raw[idx].get("company_ref_no") or str(idx)
-                    seen_counts[key] = seen_counts.get(key, 0) + 1
-        for c in companies:
-            if seen_counts.get(c.ref_no, 0) > 2:
-                c.score += 0.2
-
         timings["materialize_ms"] = (time.time() - t4) * 1000
+
         total = time.time() - t0
 
         md = QueryMetadata(
@@ -665,7 +845,6 @@ class EnhancedQueryProcessor:
             intent_enhancement_used=(strategy in (ProcessingStrategy.INTENT_ENHANCED, ProcessingStrategy.HYBRID, ProcessingStrategy.INTENT_FALLBACK)),
             timings_ms=timings,
         )
-
         summary = self._summarize(companies, intents)
         intent_answer = self._intent_answer(companies, intents)
         return QueryResult(
@@ -675,6 +854,7 @@ class EnhancedQueryProcessor:
             raw_results={"prefilter": len(pre)},
             intent_info={"intents": intents, "answer": intent_answer}
         )
+
     # ---- Helpers ----
     def _summarize(self, companies: List[Company], intents: Tuple[str, ...]) -> str:
         if not companies:
@@ -694,79 +874,13 @@ class EnhancedQueryProcessor:
             extra.append(f"Contact info for {have_contact} companies")
         return f"Found {len(companies)} companies. Top matches: {top}. " + " ".join(extra)
 
-    def _intent_answer(self, companies: List[Company], intents: Tuple[str, ...], topk: int = 5) -> str:
-        if not companies:
-            return "No matching companies found."
-
-        lines = []
-        show_location = ("location" in intents)
-        show_domain   = ("business_domain" in intents) or ("products_services" in intents) or ("basic_info" in intents)
-
-        # Prefer fewer, clearer rows
-        for c in companies[:topk]:
-            parts = [f"{c.name} [{c.ref_no}]"]
-
-            if show_location:
-                addr_bits = [c.address, c.city, c.state, c.country]
-                if c.pincode: addr_bits.append(c.pincode)
-                addr = ", ".join([x for x in addr_bits if x])
-                if addr:
-                    parts.append(f"Address: {addr}")
-
-            if show_domain:
-                dom_bits = []
-                if c.domain:
-                    dom_bits.append(f"Core expertise: {c.domain}")
-                if c.industry_domain:
-                    dom_bits.append(f"Industry: {c.industry_domain}")
-                if dom_bits:
-                    parts.append("; ".join(dom_bits))
-
-            # Always useful: contact
-            if c.contact_info.email or c.contact_info.website or c.contact_info.phone:
-                contact_bits = []
-                if c.contact_info.email:   contact_bits.append(f"Email: {c.contact_info.email}")
-                if c.contact_info.website: contact_bits.append(f"Website: {c.contact_info.website}")
-                if c.contact_info.phone:   contact_bits.append(f"Phone: {c.contact_info.phone}")
-                parts.append(" | ".join(contact_bits))
-
-            # Optional: certs
-            if "certifications" in intents and c.certifications:
-                parts.append("Certifications: " + ", ".join(c.certifications))
-
-            # Optional: RD / testing
-            if "rd_capabilities" in intents and c.rd_categories:
-                parts.append("R&D: " + ", ".join(c.rd_categories))
-            if "testing_capabilities" in intents and c.testing_categories:
-                parts.append("Testing: " + ", ".join(c.testing_categories))
-
-            lines.append(" - " + "  ·  ".join(parts))
-
-        header = []
-        if show_location: header.append("Location details")
-        if show_domain:   header.append("Core expertise")
-        if not header:    header.append("Company details")
-
-        return f"{' & '.join(header)}:\n" + "\n".join(lines)
 
 # ============================= Public API / CLI =============================
 
 def _try_project_load_config():
     try:
-        from src.load_config import load_config as _lc, get_company_mapped_data_processed_data_store  # type: ignore
+        from src.load_config import load_config as _lc  # type: ignore
         cfg, logger = _lc()
-        # Map from the project's config structure to what this module expects
-        if cfg:
-            # The project config has company_mapped_data as a dict, but this module expects a string path
-            try:
-                processed_data_store_path = get_company_mapped_data_processed_data_store(cfg)
-                cfg["company_mapped_data"] = str(processed_data_store_path)
-            except Exception:
-                # Fallback if the function fails
-                if isinstance(cfg.get("company_mapped_data"), dict):
-                    cfg["company_mapped_data"] = cfg["company_mapped_data"].get("processed_data_store", "./processed_data_store/company_mapped_store")
-                else:
-                    cfg["company_mapped_data"] = "./processed_data_store/company_mapped_store"
         return cfg, logger
     except Exception:
         return None, None
@@ -776,8 +890,21 @@ def execute_enhanced_query_with_summary(user_query: str, config: Optional[Dict[s
                                         topk: int = 20) -> Dict[str, Any]:
     if config is None or logger is None:
         cfg2, log2 = _try_project_load_config()
-        config = config or (cfg2 or {"company_mapped_data": "./processed_data_store"})
+        config = config or (cfg2 or {"company_data": "./processed_data_store"})
         logger = logger or (log2 or _make_default_logger())
+
+    # Fix config structure for project integration
+    if config and isinstance(config.get("company_mapped_data"), dict):
+        # Project config has nested structure, extract the processed_data_store path
+        try:
+            from src.load_config import get_company_mapped_data_processed_data_store
+            processed_data_store_path = get_company_mapped_data_processed_data_store(config)
+            config = dict(config)  # Make a copy
+            config["company_data"] = str(processed_data_store_path)
+        except Exception:
+            # Fallback if the function fails
+            config = dict(config)
+            config["company_data"] = config["company_mapped_data"].get("processed_data_store", "./processed_data_store/company_mapped_store")
 
     proc = EnhancedQueryProcessor(config, logger)
     res = proc.process_query(user_query, topk=topk)
@@ -801,33 +928,40 @@ def execute_enhanced_query_with_summary(user_query: str, config: Optional[Dict[s
     }
 
 
-
 def _demo_queries():
     return [
-        #companies having ISO certification with testing facilities",
+        #"companies having ISO certification with testing facilities",
         #"electrical companies in Sweden",
         #"Company_036 location",
-        #"small scale manufacturing companies",
+        "small scale manufacturing companies",
         #"r&d capabilities in power systems",
-        "list all companies in State5"
     ]
 
 def main():
-    # Try to use project config first, fallback to hardcoded if needed
-    config, logger = _try_project_load_config()
-    if config is None or logger is None:
-        logger = _make_default_logger()
-        config = {
-            "company_mapped_data": "./processed_data_store/company_mapped_store",
-            "intent_mapping": "./config/intent_mapping.json",
-            "domain_mapping": "./config/domain_mapping.json",
-        }
-    logger.info("Enhanced Query Execution - Single File")
+    import argparse
+    logger = _make_default_logger()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--company-data", default="./processed_data_store/company_mapped_store",
+                        help="Directory containing integrated_company_search.json")
+    parser.add_argument("--intent-mapping", default=None, help="Path to intent_mapping.json")
+    parser.add_argument("--domain-mapping", default=None, help="Path to domain_mapping.json (optional)")
+    parser.add_argument("--topk", type=int, default=20)
+    args = parser.parse_args()
+
+    config = {"company_data": args.company_data}
+    if args.intent_mapping: config["intent_mapping"] = args.intent_mapping
+    if args.domain_mapping: config["domain_mapping"] = args.domain_mapping
+
+    ipath = Path(config["company_data"]) / "integrated_company_search.json"
+    logger.info(f"Using integrated file: {ipath} | Exists={ipath.exists()}")
+
+    logger.info("Enhanced Query Execution - Single File (TF-IDF + Embeddings + RRF)")
     for q in _demo_queries():
-        out = execute_enhanced_query_with_summary(q, config=config, logger=logger)
+        out = execute_enhanced_query_with_summary(q, config=config, logger=logger, topk=args.topk)
         logger.info(f"Query: {q}")
         logger.info(f"  Strategy={out['strategy']} conf={out['confidence']:.2f} time={out['processing_time']:.3f}s")
         logger.info(f"  Summary: {out['enhanced_summary']}")
+        logger.info(f"  Intent answer:\n{out['intent_answer']}")
         logger.info(f"  Companies: {len(out['results']['companies'])}")
         logger.info("-"*60)
 
