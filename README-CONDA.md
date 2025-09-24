@@ -10,7 +10,7 @@
 - python bootstrap_conda_local.py pip -- install -r requirements.txt
 
 ### Install the application
-- python bootstrap_conda_local.py run -- python .\run_pipeline.py
+- python bootstrap_conda_local.py run -- python .\run_conda_pipeline.py
 
 
 ### Run the questions
