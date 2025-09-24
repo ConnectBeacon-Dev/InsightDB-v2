@@ -42,6 +42,5 @@
   "show_source": false,
   "sentence_transformer_model_name": "models\\sentence-transformers\\sentence-transformers_all-mpnet-base-v2",
   "sentence_transformer_model_from_net": "sentence-transformers/all-mpnet-base-v2",
-  "batch_size": 256,
-  "qwen_model_path": "models\\Qwen2.5-14B-Instruct-Q4_K_M.gguf"
+  "batch_size": 256
 }
