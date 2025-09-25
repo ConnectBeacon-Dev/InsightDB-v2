@@ -20,7 +20,7 @@ def get_node(obj: dict, path: List[str]) -> Any:
     return cur
 
 def collect_pairs(node: Any) -> List[Tuple[str, str]]:
-    """Collect [{'table':..., 'field':...}] recursively → [(table, field), ...]"""
+    """Collect [{'table':..., 'field':...}] recursively -> [(table, field), ...]"""
     out: List[Tuple[str, str]] = []
     if isinstance(node, dict):
         if "table" in node and "field" in node:
@@ -115,7 +115,7 @@ Rules:
     ]
   }}
 - Do not invent tables/fields.
-- Order best→worst.
+- Order best->worst.
 
 User query: "{query}"
 Return the JSON now.

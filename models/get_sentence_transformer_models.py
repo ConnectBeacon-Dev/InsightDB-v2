@@ -68,7 +68,7 @@ def _get_fresh_model(model_name: str, target_dir: Path) -> str:
                 resume_download=True
             )
 
-            print(f"[INFO] Copying snapshot → {target_dir}")
+            print(f"[INFO] Copying snapshot -> {target_dir}")
             shutil.copytree(snapshot_path, target_dir)
 
             # Verify

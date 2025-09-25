@@ -1,123 +1,50 @@
 {
-  "CompanyProfile": {
-    "BasicInfo": [
-      {"table": "CompanyMaster", "field": "CINNumber", "hints": "Company Identification Number (CIN); unique company ID"},
-      {"table": "CompanyMaster", "field": "Pan", "hints": "Tax ID; Permanent Account Number (PAN)"},
-      {"table": "CompanyMaster", "field": "CompanyName", "hints": "Official name of the company", "is_categorical": true},
-      {"table": "CompanyMaster", "field": "CompanyRegistrationDate", "hints": "Date of incorporation / registration"},
-      {"table": "CompanyMaster", "field": "CompanyStatus", "hints": "Active/Incorporated/Dormant/Struck off", "is_categorical": true},
-      {"table": "CompanyMaster", "field": "CompanyROC", "hints": "Registrar of Companies (ROC) office"},
-      {"table": "CompanyMaster", "field": "ListingStatus", "hints": "Listed / Unlisted / SME"},
-      {"table": "CompanyMaster", "field": "CompanyClass", "hints": "Public / Private / One Person Company (OPC)", "is_categorical": true}
-    ],
-    "ContactInfo": [
-      {"table": "CompanyMaster", "field": "Address"},
-      {"table": "CompanyMaster", "field": "CityName"},
-      {"table": "CompanyMaster", "field": "PinCode", "hints": "Postal/ZIP code"},
-      {"table": "CompanyMaster", "field": "State"},
-      {"table": "CompanyMaster", "field": "District"},
-      {"table": "CountryMaster", "field": "CountryName", "is_categorical": true},
-      {"table": "CountryMaster", "field": "DisplayCountryName"},
-      {"table": "CompanyMaster", "field": "EmailId"},
-      {"table": "CompanyMaster", "field": "Website"},
-      {"table": "CompanyMaster", "field": "POC_Email", "hints": "Point-of-contact email"},
-      {"table": "CompanyMaster", "field": "Phone"}
-    ],
-    "Classification": [
-      {"table": "ScaleMaster", "field": "CompanyScale", "hints": "MSME/Large/Small/Medium", "is_categorical": true, "synonyms": ["scale", "size", "msme", "sme", "small scale", "medium scale", "large scale"]},
-      {"table": "CompanyMaster", "field": "CompanyCategory", "hints": "Company category", "is_categorical": true},
-      {"table": "CompanyMaster", "field": "CompanySubCategory", "hints": "Company sub-category", "is_categorical": true},
-      {"table": "OrganisationTypeMaster", "field": "Organization_Type", "hints": "Type of organization", "is_categorical": true, "synonyms": ["organization type", "org type", "ownership"]},
-      {"table": "CompanyMaster", "field": "CompanyIndustrialClassification", "hints": "Industrial classification (NIC/SIC/NAICS where applicable)", "is_categorical": true},
-      {"table": "CompanyMaster", "field": "OtherScale", "hints": "Additional information on company scale"},
-      {"table": "CompanyMaster", "field": "OtherCompanyType", "hints": "Additional organization type remarks"}
-    ]
-  },
-  "BusinessDomain": {
-    "CoreExpertise": [
-      {
-        "table": "CompanyCoreExpertiseMaster",
-        "field": "CoreExpertiseName",
-        "hints": "Primary technical/business expertise",
-        "is_categorical": true,
-        "synonyms": [
-          "expertise", "specialization", "capability", "competency",
-          "electrical", "power systems", "power electronics", "electronics",
-          "mechanical", "aerospace", "software", "embedded systems", "communications", "rf", "defence"
-        ]
-      },
-      {"table": "CompanyMaster", "field": "OtherCompanyCoreExpertise", "hints": "Free-text expertise details"}
-    ],
-    "Industry": [
-      {
-        "table": "IndustryDomainMaster",
-        "field": "IndustryDomainType",
-        "hints": "High-level industry domain",
-        "is_categorical": true,
-        "synonyms": ["industry", "sector", "domain", "aerospace", "defence", "oil & gas", "automotive", "power", "energy", "electronics"]
-      },
-      {
-        "table": "IndustrySubdomainType",
-        "field": "IndustrySubDomainName",
-        "hints": "Industry sub-domain",
-        "is_categorical": true,
-        "synonyms": ["subdomain", "sub-domain", "vertical", "niche", "avionics", "high voltage", "pcb", "semiconductor"]
-      },
-      {"table": "CompanyMaster", "field": "OtherCompIndDomain", "hints": "Other industry domain (free-text)"},
-      {"table": "CompanyMaster", "field": "OtherCompIndSubDomain", "hints": "Other industry sub-domain (free-text)"}
-    ]
-  },
+  "CompanyDetails": [
+    {"table": "CompanyMaster"},
+    {"table": "CountryMaster"},
+    {"table": "ScaleMaster"},
+    {"table": "OrganisationTypeMaster"},
+    {"table": "CompanyCoreExpertiseMaster"},
+    {"table": "IndustryDomainMaster"},
+    {"table": "IndustrySubdomainType"},
+    {"table": "CompanyTurnOver"}
+  ],
   "ProductsAndServices": {
     "Products": [
-      {"table": "CompanyProducts", "field": "ProductName", "is_categorical": true},
-      {"table": "CompanyProducts", "field": "ProductDesc"},
-      {"table": "ProductTypeMaster", "field": "ProductTypeName", "is_categorical": true, "synonyms": ["product type", "product category"]},
-      {"table": "CompanyProducts", "field": "HSNCode", "hints": "Harmonized System of Nomenclature"},
-      {"table": "CompanyProducts", "field": "NSNNumber", "hints": "NATO Stock Number"},
-      {"table": "CompanyProducts", "field": "ProductCertificateDet", "hints": "Product certifications/approvals"},
-      {"table": "CompanyProducts", "field": "SalientFeature", "hints": "Product focussing more features"},
-      {"table": "CompanyProducts", "field": "AnnualProductionCapacity", "hints": "Productivty"},
-      {"table": "CompanyProducts", "field": "FutureExpansion", "hints": "Future expansion"}
-    ],
-    "DefenceSector": [
-      {"table": "DefencePlatformMaster", "field": "Name_of_Defence_Platform", "is_categorical": true, "synonyms": ["defence platform", "platform"]},
-      {"table": "PlatformTechAreaMaster", "field": "PTAName", "hints": "Platform Technology Area", "is_categorical": true, "synonyms": ["pta", "tech area", "technology area"]}
-    ],
-    "ExportInfo": [
-      {"table": "CompanyProducts", "field": "ItemExported", "is_categorical": true, "synonyms": ["exports", "exported items", "exported products"]}
+      {"table": "CompanyProducts"},
+      {"table": "ProductTypeMaster"},
+      {"table": "PlatformTechAreaMaster"},
+      {"table": "DefencePlatformMaster"}
     ]
   },
   "QualityAndCompliance": {
     "Certifications": [
-      {"table": "CertificationTypeMaster", "field": "Cert_Type", "hints": "Certification taxonomy (e.g., ISO 9001, ISO 27001, NABL)", "is_categorical": true, "synonyms": ["certification type", "certificate type", "iso 9001", "iso 27001", "nabl"]},
-      {"table": "CompanyCertificationDetail", "field": "Certification_Type", "hints": "Company's certification (e.g., ISO 9001, NABL)", "is_categorical": true},
-      {"table": "CompanyCertificationDetail", "field": "OtherCertification_Type"},
-      {"table": "CompanyCertificationDetail", "field": "Certificate_No"},
-      {"table": "CompanyCertificationDetail", "field": "Certificate_StartDate"},
-      {"table": "CompanyCertificationDetail", "field": "Certificate_EndDate"}
+      {"table": "CertificationTypeMaster"},
+      {"table": "CompanyCertificationDetail"}
     ],
     "TestingCapabilities": [
-      {"table": "TestFacilityCategoryMaster", "field": "CategoryName", "is_categorical": true, "synonyms": ["test category", "testing category"]},
-      {"table": "TestFacilitySubCategoryMaster", "field": "SubCategoryName", "is_categorical": true, "synonyms": ["test subcategory", "testing subcategory", "high voltage test", "environmental test", "vibration test", "emi emc"]},
-      {"table": "CompanyTestFacility", "field": "TestDetails", "hints": "Free-text test descriptions, methods, scope"},
-      {"table": "CompanyTestFacility", "field": "IsNabIAccredited", "hints": "NABL accreditation (true/false)", "is_categorical": true, "synonyms": ["nabl", "accredited"]},
-      {"table": "TestFacilitySubCategoryMaster", "field": "Description"}
+      {"table": "TestFacilityCategoryMaster"},
+      {"table": "TestFacilitySubCategoryMaster"},
+      {"table": "CompanyTestFacility"}
     ]
   },
   "ResearchAndDevelopment": {
     "RDCapabilities": [
-      {"table": "RDCategoryMaster", "field": "RDCategoryName", "hints": "R&D category (e.g., electrical, mechanical, materials)", "is_categorical": true, "synonyms": ["r&d category", "rd category", "electrical", "mechanical", "materials", "embedded", "rf", "power systems", "power", "electrical systems", "electronics", "electrical engineering"]},
-      {"table": "RDSubCategoryMaster", "field": "RDSubCategoryName", "hints": "R&D subcategory (e.g., power electronics, high voltage)", "is_categorical": true, "synonyms": ["r&d subcategory", "rd subcategory", "power electronics", "high voltage", "signal processing", "high voltage lab", "hv lab", "electrical lab", "power lab", "voltage testing", "electrical testing"]},
-      {"table": "CompanyRDFacility", "field": "RD_Details", "hints": "Free-text R&D facility details"}
-    ],
-    "RDAccreditation": [
-      {"table": "CompanyRDFacility", "field": "IsNabIAccredited", "hints": "NABL accreditation for R&D lab (true/false)", "is_categorical": true, "synonyms": ["nabl", "accredited", "r&d accreditation"]}
+      {"table": "RDCategoryMaster"},
+      {"table": "RDSubCategoryMaster"},
+      {"table": "CompanyRDFacility"}
     ]
   },
-  "FinancialMetrics": {
-    "Revenue": [
-      {"table": "CompanyTurnOver", "field": "Amount", "hints": "Turnover/Revenue amount (numeric)"},
-      {"table": "CompanyTurnOver", "field": "YearId", "hints": "Financial year identifier"}
-    ]
-  }
+  "SkipFields": [
+    "Final_Submit",
+    "IsActive",
+    "CreatedBy",
+    "CreatedDate",
+    "CreatedIP",
+    "UpdatedBy",
+    "UpdatedDate",
+    "UpdatedIP",
+    "UpdateIP",
+    "IPAddress"
+  ]
 }

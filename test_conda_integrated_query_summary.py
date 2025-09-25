@@ -154,7 +154,7 @@ def ensure_conda(args: argparse.Namespace) -> None:
 
     # 2) Named env
     if args.conda_name:
-        # Convert name → prefix via `conda env list` is overkill; just rely on conda run -n
+        # Convert name -> prefix via `conda env list` is overkill; just rely on conda run -n
         # However, we still want to avoid recursion if we're already in it.
         current_name = os.environ.get("CONDA_DEFAULT_ENV")
         if current_name != args.conda_name:

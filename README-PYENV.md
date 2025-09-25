@@ -37,7 +37,7 @@ python bootstrap_pyenv_local.py run -- .\test_pyen_integrated_query_summary.py -
 
 
 ### Clean up
-python bootstrap_pyenv_local.py clean
+- python bootstrap_pyenv_local.py clean
 
 ### Additional tests (optional)
 - python bootstrap_pyenv_local.py clean

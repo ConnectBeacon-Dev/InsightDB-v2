@@ -30,7 +30,7 @@ LIN_MAMBA    = MAMBA_DIR / "micromamba"
 def log(msg): print(f"[+] {msg}")
 def warn(msg): print(f"[!] {msg}")
 def run(cmd, env=None, check=True):
-    print("→", " ".join(str(c) for c in cmd))
+    print("->", " ".join(str(c) for c in cmd))
     return subprocess.run(cmd, env=env, check=check)
 
 def force_rmtree(p: Path):

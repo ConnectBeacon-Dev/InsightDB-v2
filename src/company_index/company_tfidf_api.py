@@ -54,18 +54,62 @@ def _load_companies(path: Path) -> List[Dict[str, Any]]:
 
 
 def _make_card(c: dict) -> str:
+    """Generate a searchable text card from company data with proper data structure handling"""
+    company_details = c.get("CompanyDetails", {})
+    products = c.get("ProductsAndServices", {}).get("ProductList", [])
+    certifications = c.get("QualityAndCompliance", {}).get("CertificationsList", [])
+    testing = c.get("QualityAndCompliance", {}).get("TestingCapabilitiesList", [])
+    rd = c.get("ResearchAndDevelopment", {}).get("RDCapabilitiesList", [])
+    
+    # Build comprehensive text from all available data
     fields = [
-        str(c.get("company_name", "")),
-        str(c.get("llm_summary", "")),
-        str(c.get("core_expertise", "")),
-        str(c.get("industry_domain", "")),
-        str(c.get("certifications", "")),
-        str(c.get("address", "")),
-        str(c.get("city", "")),
-        str(c.get("state", "")),
-        str(c.get("country", "")),
+        str(company_details.get("company_name", "")),
+        str(company_details.get("core_expertise", "")),
+        str(company_details.get("industry_domain", "")),
+        str(company_details.get("industry_subdomain", "")),
+        str(company_details.get("address", "")),
+        str(company_details.get("city", "")),
+        str(company_details.get("state", "")),
+        str(company_details.get("country", "")),
+        str(company_details.get("company_scale", "")),
+        str(company_details.get("organization_type", "")),
     ]
-    return " | ".join([x for x in fields if x]).strip()
+    
+    # Add product information
+    for product in products:
+        fields.extend([
+            str(product.get("product_name", "")),
+            str(product.get("product_description", "")),
+            str(product.get("product_type", "")),
+            str(product.get("salient_features", "")),
+        ])
+    
+    # Add certification information
+    for cert in certifications:
+        fields.extend([
+            str(cert.get("certification_detail", "")),
+            str(cert.get("certification_type_master", "")),
+        ])
+    
+    # Add testing capabilities
+    for test in testing:
+        fields.extend([
+            str(test.get("test_details", "")),
+            str(test.get("test_category", "")),
+            str(test.get("test_subcategory", "")),
+        ])
+    
+    # Add R&D capabilities
+    for rd_item in rd:
+        fields.extend([
+            str(rd_item.get("rd_details", "")),
+            str(rd_item.get("rd_category", "")),
+            str(rd_item.get("rd_subcategory", "")),
+        ])
+    
+    # Filter out empty strings and "nan" values
+    meaningful_fields = [x for x in fields if x and x.lower() != "nan" and x.strip()]
+    return " | ".join(meaningful_fields).strip()
 
 
 def company_tfidf_api():
@@ -130,7 +174,7 @@ def company_tfidf_api():
     )
 
     try:
-        X = vec.fit_transform(cards)  # l2-normalized rows → cosine = dot
+        X = vec.fit_transform(cards)  # l2-normalized rows -> cosine = dot
     except ValueError as e:
         # Common cause: empty vocabulary (all cards empty/stopwords or wrong file)
         msg = (
@@ -147,24 +191,25 @@ def company_tfidf_api():
     # Lightweight meta to map row -> display fields
     meta = []
     for i, c in enumerate(companies):
+        company_details = c.get("CompanyDetails", {})
         meta.append({
             "row": i,
-            "company_ref_no": c.get("company_ref_no"),
-            "company_name": c.get("company_name"),
-            "core_expertise": c.get("core_expertise"),
-            "industry_domain": c.get("industry_domain"),
-            "address": c.get("address"),
-            "city": c.get("city"),
-            "state": c.get("state"),
-            "country": c.get("country"),
-            "email": c.get("email") or c.get("poc_email"),
-            "website": c.get("website"),
-            "phone": c.get("phone"),
+            "company_ref_no": company_details.get("company_ref_no"),
+            "company_name": company_details.get("company_name"),
+            "core_expertise": company_details.get("core_expertise"),
+            "industry_domain": company_details.get("industry_domain"),
+            "address": company_details.get("address"),
+            "city": company_details.get("city"),
+            "state": company_details.get("state"),
+            "country": company_details.get("country"),
+            "email": company_details.get("email") or company_details.get("poc_email"),
+            "website": company_details.get("website"),
+            "phone": company_details.get("phone"),
         })
     INDEX_PATH.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
     logger.info(f"[TFIDF] Saved:\n  {VECTORIZER_PATH}\n  {MATRIX_PATH}\n  {INDEX_PATH}")
-    print(f"OK: TF-IDF built for {n} companies → {OUT_DIR}")
+    print(f"OK: TF-IDF built for {n} companies -> {OUT_DIR}")
 
 
 if __name__ == "__main__":

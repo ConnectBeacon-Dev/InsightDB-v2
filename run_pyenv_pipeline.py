@@ -51,7 +51,7 @@ def build_runner() -> list[str]:
     if in_target_venv():
         return [sys.executable]
     if not BOOTSTRAP.exists():
-        print(f"❌ bootstrap not found: {BOOTSTRAP}")
+        print(f"bootstrap not found: {BOOTSTRAP}")
         sys.exit(2)
     return [sys.executable, str(BOOTSTRAP), "run", "--"]
 
@@ -81,11 +81,11 @@ def main():
             logf.write(f"[{i}/{len(STEPS)}] {' '.join(cmd)}\n")
             rc = run_step(cmd, logf)
             if rc != 0:
-                print(f"❌ Step failed (exit {rc})")
+                print(f" Step failed (exit {rc})")
                 logf.write(f"FAILED at step {i} (exit {rc})\n")
                 sys.exit(rc)
 
-        print("✅ Pipeline finished successfully.")
+        print("Pipeline finished successfully.")
         logf.write("SUCCESS\n")
 
 if __name__ == "__main__":

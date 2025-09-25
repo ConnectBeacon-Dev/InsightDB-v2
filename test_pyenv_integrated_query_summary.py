@@ -146,19 +146,19 @@ def main() -> None:
         else:
             logger.debug("✅ Query executed successfully")
             if isinstance(result, dict):
-                logger.info(f"📊 Confidence: {result.get('confidence', 0):.2f}")
+                logger.info(f" Confidence: {result.get('confidence', 0):.2f}")
                 if result.get('results'):
                     results = result['results']
-                    logger.info(f"📈 Companies: {results.get('companies_count', 0)}")
+                    logger.info(f" Companies: {results.get('companies_count', 0)}")
 
                 # Show enhanced summary
                 if result.get('enhanced_summary'):
-                    logger.info(f"\n📋 Enhanced Summary:")
+                    logger.info(f"\n Enhanced Summary:")
                     print(result['enhanced_summary'])
 
                 # Show intent answer (the detailed company information)
                 if result.get('intent_answer'):
-                    logger.info(f"\n🎯 Intent Answer:")
+                    logger.info(f"\n Intent Answer:")
                     print(result['intent_answer'])
 
         logger.info("\n✅ Integration test completed successfully!")

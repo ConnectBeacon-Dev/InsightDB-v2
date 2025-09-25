@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Create Integrated Company Search File from Flat Files
+Create Integrated Company Search File (Nested Structure)
 
-This script creates a flattened, fast-searchable JSON file with all company data
-by reading directly from CSV flat files and using table relations for foreign key resolution.
-- Robust CSV loader with multi-encoding fallback (UTF-8, UTF-8-SIG, CP1252, Latin-1, ISO-8859-1)
-- Optional chardet-based detection if installed
+Builds one integrated JSON with, per company:
+- CompanyDetails (base facts)
+- ProductsAndServices -> ProductList (Products)
+- QualityAndCompliance -> CertificationsList (Certifications)
+- QualityAndCompliance -> TestingCapabilitiesList (TestingCapabilities)
+- ResearchAndDevelopment -> RDCapabilitiesList (RDCapabilities)
+
+Robust CSV loader (multi-encoding), FK resolution via relations.json.
 """
 
 from __future__ import annotations
@@ -14,20 +19,20 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 import pandas as pd
 
-# Optional: use chardet for smarter encoding detection if available
+# Optional: chardet for encoding detection
 try:
     import chardet  # type: ignore
     _HAS_CHARDET = True
 except Exception:
     _HAS_CHARDET = False
 
-# Setup logging
+# ---------------------------- Logging ----------------------------
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("integrated_company_search")
 
 
 class IntegratedSearchFileCreator:
@@ -35,28 +40,28 @@ class IntegratedSearchFileCreator:
 
     def __init__(self, base_path: str = "."):
         self.base_path = Path(base_path)
+
+        # Input/Output layout (Windows-friendly; relative to repo root)
         self.input_data_path = self.base_path / "input_data" / "data_flat_file"
         self.relations_path = self.base_path / "input_data" / "table_relations" / "relations.json"
         self.processed_data_path = self.base_path / "processed_data_store" / "company_mapped_store"
         self.output_path = self.processed_data_path / "integrated_company_search.json"
 
-        # Ensure output directory exists
         self.processed_data_path.mkdir(parents=True, exist_ok=True)
 
-        # Load table relations and CSV data
+        # Load relations + all CSVs
         self.relations = self._load_table_relations()
         self.tables = self._load_csv_tables()
 
     # ---------------------------- Robust I/O helpers ----------------------------
 
-    def _detect_encoding(self, file_path: Path, sample_size: int = 200_000) -> str | None:
-        """Try to detect encoding using chardet (if available). Returns encoding or None."""
+    def _detect_encoding(self, file_path: Path, sample_size: int = 200_000) -> Optional[str]:
         if not _HAS_CHARDET:
             return None
         try:
             with open(file_path, "rb") as f:
                 raw = f.read(sample_size)
-            res = chardet.detect(raw)  # {'encoding': 'utf-8', 'confidence': 0.99, 'language': ''}
+            res = chardet.detect(raw)  # {'encoding': 'utf-8', 'confidence': 0.99, ...}
             enc = (res or {}).get("encoding")
             if enc:
                 logger.info(f"  ↪ chardet suggests encoding='{enc}' (conf={res.get('confidence')}) for {file_path.name}")
@@ -66,33 +71,18 @@ class IntegratedSearchFileCreator:
             return None
 
     def _read_csv_robust(self, csv_file: Path) -> pd.DataFrame:
-        """
-        Read a CSV file with robust multi-encoding fallback.
-        Tries chardet’s guess first (if present), then common encodings.
-        """
-        # Prefer comma; if your CSVs vary, you can set sep=None and engine='python' to sniff.
-        # sep=None can be slower; keeping default comma unless you need sniffing.
         tried: List[str] = []
         last_err: Exception | None = None
 
-        # 1) Try chardet guess first (if any)
+        encodings: List[str] = []
         guess = self._detect_encoding(csv_file)
-        encodings = [guess] if guess else []
-        # 2) Add prioritized encodings
+        if guess:
+            encodings.append(guess)
         encodings += ["utf-8", "utf-8-sig", "cp1252", "latin1", "iso-8859-1"]
 
         for enc in encodings:
-            if not enc:
-                continue
             try:
-                df = pd.read_csv(
-                    csv_file,
-                    encoding=enc,
-                    # If your CSVs have tricky delimiters, switch to engine="python" and optionally sep=None to sniff
-                    # engine="python",
-                    # sep=None,
-                    # If you're on pandas >= 2.0, you could add: encoding_errors="replace",
-                )
+                df = pd.read_csv(csv_file, encoding=enc)
                 logger.info(f"  ✅ Loaded {csv_file.name} with encoding='{enc}': {len(df)} rows, {len(df.columns)} cols")
                 return df
             except Exception as e:
@@ -100,7 +90,7 @@ class IntegratedSearchFileCreator:
                 last_err = e
                 logger.debug(f"  ↪ failed with encoding='{enc}' for {csv_file.name}: {e}")
 
-        # 3) Final fallback: try python engine + sep=None (sniff) with Latin-1 (very permissive)
+        # Final fallback: python engine + sep sniff + latin1
         try:
             df = pd.read_csv(csv_file, engine="python", sep=None, encoding="latin1")
             logger.info(f"  ✅ Loaded {csv_file.name} via fallback sniff/latin1: {len(df)} rows, {len(df.columns)} cols")
@@ -117,11 +107,27 @@ class IntegratedSearchFileCreator:
     # ---------------------------- Load relations/tables ----------------------------
 
     def _load_table_relations(self) -> List[Dict]:
-        """Load table relations from JSON file."""
+        """Load table relations (legacy schema: list of {from_table, from_column, to_table, to_column})."""
         try:
             logger.info(f"Loading table relations from: {self.relations_path}")
             with open(self.relations_path, 'r', encoding='utf-8') as f:
                 relations = json.load(f)
+            # relations may be a list, or {edges:[...]} – normalize to flat list with legacy keys
+            if isinstance(relations, dict) and "edges" in relations:
+                edges = relations.get("edges", [])
+                flat = []
+                for e in edges:
+                    if not isinstance(e, dict): 
+                        continue
+                    if "from" in e and "to" in e:
+                        fobj, tobj = e["from"], e["to"]
+                        flat.append({
+                            "from_table": fobj.get("table"),
+                            "from_column": fobj.get("field"),
+                            "to_table": tobj.get("table"),
+                            "to_column": tobj.get("field"),
+                        })
+                relations = flat
             logger.info(f"✅ Loaded {len(relations)} table relations")
             return relations
         except Exception as e:
@@ -129,7 +135,7 @@ class IntegratedSearchFileCreator:
             return []
 
     def _load_csv_tables(self) -> Dict[str, pd.DataFrame]:
-        """Load all CSV tables into memory (robust to non-English characters)."""
+        """Load all CSV tables into memory."""
         logger.info("Loading CSV tables...")
         tables: Dict[str, pd.DataFrame] = {}
 
@@ -138,7 +144,6 @@ class IntegratedSearchFileCreator:
 
         for csv_file in csv_files:
             try:
-                # Extract table name from filename (remove dbo. prefix and .csv suffix)
                 table_name = csv_file.stem.replace('dbo.', '')
                 df = self._read_csv_robust(csv_file)
                 tables[table_name] = df
@@ -158,9 +163,9 @@ class IntegratedSearchFileCreator:
         from_value: Any,
         to_table: str,
         to_column: str,
-        target_column: str | None = None,
+        target_column: Optional[str] = None,
     ) -> str:
-        """Resolve foreign key to actual value using table relations."""
+        """Resolve foreign key to a readable value (best-effort)."""
         if pd.isna(from_value) or from_value == '' or from_value is None:
             return ""
 
@@ -169,17 +174,21 @@ class IntegratedSearchFileCreator:
                 return str(from_value)
 
             target_df = self.tables[to_table]
-            matching_rows = target_df[target_df[to_column] == from_value]
+            # exact match
+            if to_column not in target_df.columns:
+                return str(from_value)
 
+            matching_rows = target_df[target_df[to_column] == from_value]
             if matching_rows.empty:
                 return str(from_value)
 
             if target_column and target_column in matching_rows.columns:
                 return str(matching_rows.iloc[0][target_column])
 
-            name_columns = [col for col in matching_rows.columns if 'name' in col.lower() or 'type' in col.lower()]
-            if name_columns:
-                return str(matching_rows.iloc[0][name_columns[0]])
+            # fallback: pick a name-ish column
+            name_cols = [c for c in matching_rows.columns if 'name' in c.lower() or 'type' in c.lower()]
+            if name_cols:
+                return str(matching_rows.iloc[0][name_cols[0]])
 
             return str(from_value)
 
@@ -187,345 +196,394 @@ class IntegratedSearchFileCreator:
             logger.debug(f"FK resolution failed for {from_table}.{from_column} -> {to_table}.{to_column}: {e}")
             return str(from_value) if from_value else ""
 
-    def _get_foreign_key_mapping(self, table_name: str) -> Dict[str, Dict]:
-        """Get foreign key mappings for a table."""
+    def _get_fk_map(self, table_name: str) -> Dict[str, Dict]:
+        """Map FK columns for a given table (legacy relations schema)."""
         fk_mappings: Dict[str, Dict] = {}
-        for relation in self.relations:
-            if relation['from_table'] == table_name:
-                fk_mappings[relation['from_column']] = {
-                    'to_table': relation['to_table'],
-                    'to_column': relation['to_column']
+        for rel in self.relations:
+            if rel.get('from_table') == table_name:
+                fk_mappings[rel['from_column']] = {
+                    'to_table': rel['to_table'],
+                    'to_column': rel['to_column']
                 }
         return fk_mappings
 
-    # ---------------------------- Record assembly ----------------------------
+    # ---------------------------- Section builders ----------------------------
 
-    def _create_company_record(self, company_row: pd.Series) -> Dict[str, Any]:
-        """Create a comprehensive company record from flat file data."""
-        try:
-            company_id = company_row['Id']
+    def _build_company_details(self, row: pd.Series) -> Dict[str, Any]:
+        """CompanyDetails section (base)."""
+        company_id = row.get('Id')
+        details: Dict[str, Any] = {
+            'company_ref_no': f"CMP{str(company_id).zfill(3)}" if pd.notna(company_id) else "",
+            'company_id': int(company_id) if str(company_id).isdigit() else 0,
+            'company_name': str(row.get('CompanyName', '') or ''),
+            'cin_number': str(row.get('CINNumber', '') or ''),
+            'pan': str(row.get('Pan', '') or ''),
+            'registration_date': str(row.get('CompanyRegistrationDate', '') or ''),
+            'company_status': str(row.get('CompanyStatus', '') or ''),
+            'company_class': str(row.get('CompanyClass', '') or ''),
+            'listing_status': str(row.get('ListingStatus', '') or ''),
+            'company_category': str(row.get('CompanyCategory', '') or ''),
+            'company_subcategory': str(row.get('CompanySubCategory', '') or ''),
+            'industrial_classification': str(row.get('CompanyIndustrialClassification', '') or ''),
+            'other_expertise': str(row.get('OtherCompanyCoreExpertise', '') or ''),
+            'other_industry_domain': str(row.get('OtherCompIndDomain', '') or ''),
+            'other_industry_subdomain': str(row.get('OtherCompIndSubDomain', '') or ''),
+            # Contacts
+            'address': str(row.get('Address', '') or ''),
+            'city': str(row.get('CityName', '') or ''),
+            'district': str(row.get('District', '') or ''),
+            'state': str(row.get('State', '') or ''),
+            'pincode': str(row.get('PinCode', '') or ''),
+            'email': str(row.get('EmailId', '') or ''),
+            'poc_email': str(row.get('POC_Email', '') or ''),
+            'phone': str(row.get('Phone', '') or ''),
+            'website': str(row.get('Website', '') or ''),
+        }
 
-            # Initialize company record with basic info
-            company_record: Dict[str, Any] = {
-                'company_ref_no': f"CMP{str(company_id).zfill(3)}",
-                'company_id': int(company_id),
-                'company_name': str(company_row.get('CompanyName', '')),
-                'cin_number': str(company_row.get('CINNumber', '')),
-                'pan': str(company_row.get('Pan', '')),
-                'registration_date': str(company_row.get('CompanyRegistrationDate', '')),
-                'company_status': str(company_row.get('CompanyStatus', '')),
-                'company_class': str(company_row.get('CompanyClass', '')),
-                'listing_status': str(company_row.get('ListingStatus', '')),
-                'company_category': str(company_row.get('CompanyCategory', '')),
-                'company_subcategory': str(company_row.get('CompanySubCategory', '')),
-                'industrial_classification': str(company_row.get('CompanyIndustrialClassification', '')),
-                'other_expertise': str(company_row.get('OtherCompanyCoreExpertise', '')),
-                'other_industry_domain': str(company_row.get('OtherCompIndDomain', '')),
-                'other_industry_subdomain': str(company_row.get('OtherCompIndSubDomain', '')),
+        # Selected FK enrichments (best-effort)
+        # Country_Fk_id -> CountryMaster.CountryName
+        if 'Country_Fk_id' in row and pd.notna(row['Country_Fk_id']):
+            details['country'] = self._resolve_foreign_key(
+                'CompanyMaster', 'Country_Fk_id',
+                row['Country_Fk_id'], 'CountryMaster', 'Id', 'CountryName'
+            )
+        else:
+            details['country'] = ''
 
-                # Contact Information
-                'address': str(company_row.get('Address', '')),
-                'city': str(company_row.get('CityName', '')),
-                'district': str(company_row.get('District', '')),
-                'state': str(company_row.get('State', '')),
-                'pincode': str(company_row.get('PinCode', '')),
-                'email': str(company_row.get('EmailId', '')),
-                'poc_email': str(company_row.get('POC_Email', '')),
-                'phone': str(company_row.get('Phone', '')),
-                'website': str(company_row.get('Website', '')),
-            }
+        # CompanyScale_Fk_Id -> ScaleMaster.CompanyScale
+        if 'CompanyScale_Fk_Id' in row and pd.notna(row['CompanyScale_Fk_Id']):
+            details['company_scale'] = self._resolve_foreign_key(
+                'CompanyMaster', 'CompanyScale_Fk_Id',
+                row['CompanyScale_Fk_Id'], 'ScaleMaster', 'Id', 'CompanyScale'
+            )
+        else:
+            details['company_scale'] = ''
 
-            # Resolve foreign keys for CompanyMaster
-            _ = self._get_foreign_key_mapping('CompanyMaster')  # retained for future logic
+        # CompanyType_Fk_Id -> OrganisationTypeMaster.Organization_Type
+        if 'CompanyType_Fk_Id' in row and pd.notna(row['CompanyType_Fk_Id']):
+            details['organization_type'] = self._resolve_foreign_key(
+                'CompanyMaster', 'CompanyType_Fk_Id',
+                row['CompanyType_Fk_Id'], 'OrganisationTypeMaster', 'Id', 'Organization_Type'
+            )
+        else:
+            details['organization_type'] = ''
 
-            # Resolve Country
-            if 'Country_Fk_id' in company_row and not pd.isna(company_row['Country_Fk_id']):
-                country_name = self._resolve_foreign_key(
-                    'CompanyMaster', 'Country_Fk_id',
-                    company_row['Country_Fk_id'], 'CountryMaster', 'Id', 'CountryName'
-                )
-                company_record['country'] = country_name
-            else:
-                company_record['country'] = ''
+        # CompanyCoreExpertise_Fk_Id -> CompanyCoreExpertiseMaster.CoreExpertiseName
+        if 'CompanyCoreExpertise_Fk_Id' in row and pd.notna(row['CompanyCoreExpertise_Fk_Id']):
+            details['core_expertise'] = self._resolve_foreign_key(
+                'CompanyMaster', 'CompanyCoreExpertise_Fk_Id',
+                row['CompanyCoreExpertise_Fk_Id'], 'CompanyCoreExpertiseMaster', 'Id', 'CoreExpertiseName'
+            )
+        else:
+            details['core_expertise'] = ''
 
-            # Resolve Company Scale
-            if 'CompanyScale_Fk_Id' in company_row and not pd.isna(company_row['CompanyScale_Fk_Id']):
-                scale = self._resolve_foreign_key(
-                    'CompanyMaster', 'CompanyScale_Fk_Id',
-                    company_row['CompanyScale_Fk_Id'], 'ScaleMaster', 'Id', 'CompanyScale'
-                )
-                company_record['company_scale'] = scale
-            else:
-                company_record['company_scale'] = ''
+        # IndustryDomain_Fk_Id -> IndustryDomainMaster.IndustryDomainType
+        if 'IndustryDomain_Fk_Id' in row and pd.notna(row['IndustryDomain_Fk_Id']):
+            details['industry_domain'] = self._resolve_foreign_key(
+                'CompanyMaster', 'IndustryDomain_Fk_Id',
+                row['IndustryDomain_Fk_Id'], 'IndustryDomainMaster', 'Id', 'IndustryDomainType'
+            )
+        else:
+            details['industry_domain'] = ''
 
-            # Resolve Organization Type
-            if 'CompanyType_Fk_Id' in company_row and not pd.isna(company_row['CompanyType_Fk_Id']):
-                org_type = self._resolve_foreign_key(
-                    'CompanyMaster', 'CompanyType_Fk_Id',
-                    company_row['CompanyType_Fk_Id'], 'OrganisationTypeMaster', 'Id', 'Organization_Type'
-                )
-                company_record['organization_type'] = org_type
-            else:
-                company_record['organization_type'] = ''
+        # IndustrySubDomain_Fk_Id -> IndustrySubdomainType.IndustrySubDomainName
+        if 'IndustrySubDomain_Fk_Id' in row and pd.notna(row['IndustrySubDomain_Fk_Id']):
+            details['industry_subdomain'] = self._resolve_foreign_key(
+                'CompanyMaster', 'IndustrySubDomain_Fk_Id',
+                row['IndustrySubDomain_Fk_Id'], 'IndustrySubdomainType', 'Id', 'IndustrySubDomainName'
+            )
+        else:
+            details['industry_subdomain'] = ''
 
-            # Resolve Core Expertise
-            if 'CompanyCoreExpertise_Fk_Id' in company_row and not pd.isna(company_row['CompanyCoreExpertise_Fk_Id']):
-                expertise = self._resolve_foreign_key(
-                    'CompanyMaster', 'CompanyCoreExpertise_Fk_Id',
-                    company_row['CompanyCoreExpertise_Fk_Id'], 'CompanyCoreExpertiseMaster', 'Id', 'CoreExpertiseName'
-                )
-                company_record['core_expertise'] = expertise
-            else:
-                company_record['core_expertise'] = ''
+        return details
 
-            # Resolve Industry Domain
-            if 'IndustryDomain_Fk_Id' in company_row and not pd.isna(company_row['IndustryDomain_Fk_Id']):
-                industry = self._resolve_foreign_key(
-                    'CompanyMaster', 'IndustryDomain_Fk_Id',
-                    company_row['IndustryDomain_Fk_Id'], 'IndustryDomainMaster', 'Id', 'IndustryDomainType'
-                )
-                company_record['industry_domain'] = industry
-            else:
-                company_record['industry_domain'] = ''
-
-            # Resolve Industry Subdomain
-            if 'IndustrySubDomain_Fk_Id' in company_row and not pd.isna(company_row['IndustrySubDomain_Fk_Id']):
-                subdomain = self._resolve_foreign_key(
-                    'CompanyMaster', 'IndustrySubDomain_Fk_Id',
-                    company_row['IndustrySubDomain_Fk_Id'], 'IndustrySubdomainType', 'Id', 'IndustrySubDomainName'
-                )
-                company_record['industry_subdomain'] = subdomain
-            else:
-                company_record['industry_subdomain'] = ''
-
-            # Add related data from other tables
-            self._add_certifications(company_record, company_id)
-            self._add_products(company_record, company_id)
-            self._add_rd_facilities(company_record, company_id)
-            self._add_test_facilities(company_record, company_id)
-            self._add_turnover(company_record, company_id)
-
-            # Clean up empty values
-            cleaned_record: Dict[str, Any] = {}
-            for key, value in company_record.items():
-                if value is not None and str(value).strip() != '' and not pd.isna(value):
-                    cleaned_record[key] = str(value).strip()
-                else:
-                    cleaned_record[key] = ''
-
-            return cleaned_record
-
-        except Exception as e:
-            logger.error(f"Failed to create company record for ID {company_row.get('Id', 'unknown')}: {e}")
-            return {
-                'company_ref_no': f"CMP{str(company_row.get('Id', '000')).zfill(3)}",
-                'company_id': int(company_row.get('Id', 0)) if str(company_row.get('Id', '0')).isdigit() else 0,
-                'company_name': str(company_row.get('CompanyName', 'Unknown')),
-                'error': str(e)
-            }
-
-    # ---------------------------- Related data adders ----------------------------
-
-    def _add_certifications(self, company_record: Dict, company_id: int):
-        try:
-            if 'CompanyCertificationDetail' not in self.tables:
-                return
-            cert_df = self.tables['CompanyCertificationDetail']
-            company_certs = cert_df[cert_df['CompanyMaster_Fk_Id'] == company_id]
-            if not company_certs.empty:
-                cert_row = company_certs.iloc[0]
-                if 'CertificateType_Fk_Id' in cert_row and not pd.isna(cert_row['CertificateType_Fk_Id']):
-                    cert_type = self._resolve_foreign_key(
-                        'CompanyCertificationDetail', 'CertificateType_Fk_Id',
-                        cert_row['CertificateType_Fk_Id'], 'CertificationTypeMaster', 'Id', 'Cert_Type'
-                    )
-                    company_record['certification_type'] = cert_type
-                company_record.update({
-                    'certification_detail': str(cert_row.get('Certification_Type', '')),
-                    'certificate_number': str(cert_row.get('Certificate_No', '')),
-                    'certificate_start_date': str(cert_row.get('Certificate_StartDate', '')),
-                    'certificate_end_date': str(cert_row.get('Certificate_EndDate', '')),
-                })
-        except Exception as e:
-            logger.debug(f"Failed to add certifications for company {company_id}: {e}")
-
-    def _add_products(self, company_record: Dict, company_id: int):
+    def _build_products_list(self, company_id: Any) -> List[Dict[str, Any]]:
+        """ProductsAndServices -> ProductList (Products)."""
+        out: List[Dict[str, Any]] = []
         try:
             if 'CompanyProducts' not in self.tables:
-                return
-            products_df = self.tables['CompanyProducts']
-            company_products = products_df[products_df['CompanyMaster_FK_Id'] == company_id]
-            if not company_products.empty:
-                product_row = company_products.iloc[0]
-                if 'ProductType_Fk_Id' in product_row and not pd.isna(product_row['ProductType_Fk_Id']):
-                    product_type = self._resolve_foreign_key(
-                        'CompanyProducts', 'ProductType_Fk_Id',
-                        product_row['ProductType_Fk_Id'], 'ProductTypeMaster', 'Id', 'ProductTypeName'
-                    )
-                    company_record['product_type'] = product_type
-                if 'DefencePlatform_Fk_Id' in product_row and not pd.isna(product_row['DefencePlatform_Fk_Id']):
-                    defence_platform = self._resolve_foreign_key(
-                        'CompanyProducts', 'DefencePlatform_Fk_Id',
-                        product_row['DefencePlatform_Fk_Id'], 'DefencePlatformMaster', 'Id', 'Name_of_Defence_Platform'
-                    )
-                    company_record['defence_platform'] = defence_platform
-                if 'PTAType_Fk_Id' in product_row and not pd.isna(product_row['PTAType_Fk_Id']):
-                    pta_type = self._resolve_foreign_key(
-                        'CompanyProducts', 'PTAType_Fk_Id',
-                        product_row['PTAType_Fk_Id'], 'PlatformTechAreaMaster', 'Id', 'PTAName'
-                    )
-                    company_record['platform_tech_area'] = pta_type
-                company_record.update({
-                    'product_name': str(product_row.get('ProductName', '')),
-                    'product_description': str(product_row.get('ProductDesc', '')),
-                    'hsn_code': str(product_row.get('HSNCode', '')),
-                    'nsn_number': str(product_row.get('NSNNumber', '')),
-                    'items_exported': str(product_row.get('ItemExported', '')),
-                })
-        except Exception as e:
-            logger.debug(f"Failed to add products for company {company_id}: {e}")
+                return out
 
-    def _add_rd_facilities(self, company_record: Dict, company_id: int):
+            df = self.tables['CompanyProducts']
+            rows = df[df.get('CompanyMaster_FK_Id') == company_id]
+            for _, r in rows.iterrows():
+                item = {
+                    'product_name': str(r.get('ProductName', '') or ''),
+                    'product_description': str(r.get('ProductDesc', '') or ''),
+                    'hsn_code': str(r.get('HSNCode', '') or ''),
+                    'nsn_number': str(r.get('NSNNumber', '') or ''),
+                    'items_exported': str(r.get('ItemExported', '') or ''),
+                    'product_certificates': str(r.get('ProductCertificateDet', '') or ''),
+                    'salient_features': str(r.get('SalientFeature', '') or ''),
+                    'annual_production_capacity': str(r.get('AnnualProductionCapacity', '') or ''),
+                    'future_expansion': str(r.get('FutureExpansion', '') or ''),
+                }
+                # ProductType
+                if pd.notna(r.get('ProductType_Fk_Id')):
+                    item['product_type'] = self._resolve_foreign_key(
+                        'CompanyProducts', 'ProductType_Fk_Id', r['ProductType_Fk_Id'],
+                        'ProductTypeMaster', 'Id', 'ProductTypeName'
+                    )
+                else:
+                    item['product_type'] = ''
+                # DefencePlatform
+                if pd.notna(r.get('DefencePlatform_Fk_Id')):
+                    item['defence_platform'] = self._resolve_foreign_key(
+                        'CompanyProducts', 'DefencePlatform_Fk_Id', r['DefencePlatform_Fk_Id'],
+                        'DefencePlatformMaster', 'Id', 'Name_of_Defence_Platform'
+                    )
+                else:
+                    item['defence_platform'] = ''
+                # PlatformTechArea
+                if pd.notna(r.get('PTAType_Fk_Id')):
+                    item['platform_tech_area'] = self._resolve_foreign_key(
+                        'CompanyProducts', 'PTAType_Fk_Id', r['PTAType_Fk_Id'],
+                        'PlatformTechAreaMaster', 'Id', 'PTAName'
+                    )
+                else:
+                    item['platform_tech_area'] = ''
+                out.append(item)
+        except Exception as e:
+            logger.debug(f"Products build failed for company {company_id}: {e}")
+        return out
+
+    def _build_certifications_list(self, company_id: Any) -> List[Dict[str, Any]]:
+        """QualityAndCompliance -> CertificationsList (Certifications)."""
+        out: List[Dict[str, Any]] = []
         try:
-            if 'CompanyRDFacility' not in self.tables:
-                return
-            rd_df = self.tables['CompanyRDFacility']
-            company_rd = rd_df[rd_df['CompanyMaster_FK_ID'] == company_id]
-            if not company_rd.empty:
-                rd_row = company_rd.iloc[0]
-                if 'RDCategory_Fk_ID' in rd_row and not pd.isna(rd_row['RDCategory_Fk_ID']):
-                    rd_category = self._resolve_foreign_key(
-                        'CompanyRDFacility', 'RDCategory_Fk_ID',
-                        rd_row['RDCategory_Fk_ID'], 'RDCategoryMaster', 'Id', 'RDCategoryName'
-                    )
-                    company_record['rd_category'] = rd_category
-                if 'RDSubCategory_Fk_Id' in rd_row and not pd.isna(rd_row['RDSubCategory_Fk_Id']):
-                    rd_subcategory = self._resolve_foreign_key(
-                        'CompanyRDFacility', 'RDSubCategory_Fk_Id',
-                        rd_row['RDSubCategory_Fk_Id'], 'RDSubCategoryMaster', 'Id', 'RDSubCategoryName'
-                    )
-                    company_record['rd_subcategory'] = rd_subcategory
-                company_record.update({
-                    'rd_details': str(rd_row.get('RD_Details', '')),
-                    'rd_nabl_accredited': str(rd_row.get('IsNabIAccredited', '')),
-                })
-        except Exception as e:
-            logger.debug(f"Failed to add R&D facilities for company {company_id}: {e}")
+            if 'CompanyCertificationDetail' not in self.tables:
+                return out
 
-    def _add_test_facilities(self, company_record: Dict, company_id: int):
+            df = self.tables['CompanyCertificationDetail']
+            rows = df[df.get('CompanyMaster_Fk_Id') == company_id]
+            for _, r in rows.iterrows():
+                item = {
+                    'certification_detail': str(r.get('Certification_Type', '') or ''),
+                    'other_certification_type': str(r.get('OtherCertification_Type', '') or ''),
+                    'certificate_number': str(r.get('Certificate_No', '') or ''),
+                    'certificate_start_date': str(r.get('Certificate_StartDate', '') or ''),
+                    'certificate_end_date': str(r.get('Certificate_EndDate', '') or ''),
+                }
+                # CertificationType
+                if pd.notna(r.get('CertificateType_Fk_Id')):
+                    item['certification_type_master'] = self._resolve_foreign_key(
+                        'CompanyCertificationDetail', 'CertificateType_Fk_Id', r['CertificateType_Fk_Id'],
+                        'CertificationTypeMaster', 'Id', 'Cert_Type'
+                    )
+                else:
+                    item['certification_type_master'] = ''
+                out.append(item)
+        except Exception as e:
+            logger.debug(f"Certifications build failed for company {company_id}: {e}")
+        return out
+
+    def _build_testing_capabilities_list(self, company_id: Any) -> List[Dict[str, Any]]:
+        """QualityAndCompliance -> TestingCapabilitiesList (TestingCapabilities)."""
+        out: List[Dict[str, Any]] = []
         try:
             if 'CompanyTestFacility' not in self.tables:
-                return
-            test_df = self.tables['CompanyTestFacility']
-            company_test = test_df[test_df['CompanyMaster_FK_ID'] == company_id]
-            if not company_test.empty:
-                test_row = company_test.iloc[0]
-                if 'TestFacilityCategory_Fk_Id' in test_row and not pd.isna(test_row['TestFacilityCategory_Fk_Id']):
-                    test_category = self._resolve_foreign_key(
-                        'CompanyTestFacility', 'TestFacilityCategory_Fk_Id',
-                        test_row['TestFacilityCategory_Fk_Id'], 'TestFacilityCategoryMaster', 'Id', 'CategoryName'
-                    )
-                    company_record['test_category'] = test_category
-                if 'TestFacilitySubCategory_Fk_id' in test_row and not pd.isna(test_row['TestFacilitySubCategory_Fk_id']):
-                    test_subcategory = self._resolve_foreign_key(
-                        'CompanyTestFacility', 'TestFacilitySubCategory_Fk_id',
-                        test_row['TestFacilitySubCategory_Fk_id'], 'TestFacilitySubCategoryMaster', 'Id', 'SubCategoryName'
-                    )
-                    company_record['test_subcategory'] = test_subcategory
-                company_record.update({
-                    'test_details': str(test_row.get('TestDetails', '')),
-                    'test_nabl_accredited': str(test_row.get('IsNabIAccredited', '')),
-                })
-        except Exception as e:
-            logger.debug(f"Failed to add test facilities for company {company_id}: {e}")
+                return out
 
-    def _add_turnover(self, company_record: Dict, company_id: int):
+            df = self.tables['CompanyTestFacility']
+            rows = df[df.get('CompanyMaster_FK_ID') == company_id]
+            for _, r in rows.iterrows():
+                item = {
+                    'test_details': str(r.get('TestDetails', '') or ''),
+                    'test_nabl_accredited': str(r.get('IsNabIAccredited', '') or ''),
+                }
+                # Category
+                if pd.notna(r.get('TestFacilityCategory_Fk_Id')):
+                    item['test_category'] = self._resolve_foreign_key(
+                        'CompanyTestFacility', 'TestFacilityCategory_Fk_Id', r['TestFacilityCategory_Fk_Id'],
+                        'TestFacilityCategoryMaster', 'Id', 'CategoryName'
+                    )
+                else:
+                    item['test_category'] = ''
+                # SubCategory
+                if pd.notna(r.get('TestFacilitySubCategory_Fk_id')):
+                    item['test_subcategory'] = self._resolve_foreign_key(
+                        'CompanyTestFacility', 'TestFacilitySubCategory_Fk_id', r['TestFacilitySubCategory_Fk_id'],
+                        'TestFacilitySubCategoryMaster', 'Id', 'SubCategoryName'
+                    )
+                    # Optional description
+                    item['test_subcategory_description'] = self._resolve_foreign_key(
+                        'CompanyTestFacility', 'TestFacilitySubCategory_Fk_id', r['TestFacilitySubCategory_Fk_id'],
+                        'TestFacilitySubCategoryMaster', 'Id', 'Description'
+                    )
+                else:
+                    item['test_subcategory'] = ''
+                    item['test_subcategory_description'] = ''
+                out.append(item)
+        except Exception as e:
+            logger.debug(f"Testing capabilities build failed for company {company_id}: {e}")
+        return out
+
+    def _build_rd_capabilities_list(self, company_id: Any) -> List[Dict[str, Any]]:
+        """ResearchAndDevelopment -> RDCapabilitiesList (RDCapabilities)."""
+        out: List[Dict[str, Any]] = []
+        try:
+            if 'CompanyRDFacility' not in self.tables:
+                return out
+
+            df = self.tables['CompanyRDFacility']
+            rows = df[df.get('CompanyMaster_FK_ID') == company_id]
+            for _, r in rows.iterrows():
+                item = {
+                    'rd_details': str(r.get('RD_Details', '') or ''),
+                    'rd_nabl_accredited': str(r.get('IsNabIAccredited', '') or ''),
+                }
+                # Category
+                if pd.notna(r.get('RDCategory_Fk_ID')):
+                    item['rd_category'] = self._resolve_foreign_key(
+                        'CompanyRDFacility', 'RDCategory_Fk_ID', r['RDCategory_Fk_ID'],
+                        'RDCategoryMaster', 'Id', 'RDCategoryName'
+                    )
+                else:
+                    item['rd_category'] = ''
+                # SubCategory
+                if pd.notna(r.get('RDSubCategory_Fk_Id')):
+                    item['rd_subcategory'] = self._resolve_foreign_key(
+                        'CompanyRDFacility', 'RDSubCategory_Fk_Id', r['RDSubCategory_Fk_Id'],
+                        'RDSubCategoryMaster', 'Id', 'RDSubCategoryName'
+                    )
+                else:
+                    item['rd_subcategory'] = ''
+                out.append(item)
+        except Exception as e:
+            logger.debug(f"R&D capabilities build failed for company {company_id}: {e}")
+        return out
+
+    # (Optional) Finances or other sections can go here as needed
+    def _build_financials(self, company_id: Any) -> List[Dict[str, Any]]:
+        out: List[Dict[str, Any]] = []
         try:
             if 'CompanyTurnOver' not in self.tables:
-                return
-            turnover_df = self.tables['CompanyTurnOver']
-            company_turnover = turnover_df[turnover_df['Company_FK_Id'] == company_id]
-            if not company_turnover.empty:
-                turnover_row = company_turnover.iloc[0]
-                company_record.update({
-                    'turnover_amount': str(turnover_row.get('Amount', '')),
-                    'turnover_year': str(turnover_row.get('YearId', '')),
+                return out
+            df = self.tables['CompanyTurnOver']
+            rows = df[df.get('Company_FK_Id') == company_id]
+            for _, r in rows.iterrows():
+                out.append({
+                    'amount': str(r.get('Amount', '') or ''),
+                    'year_id': str(r.get('YearId', '') or ''),
                 })
         except Exception as e:
-            logger.debug(f"Failed to add turnover for company {company_id}: {e}")
+            logger.debug(f"Financials build failed for company {company_id}: {e}")
+        return out
 
-    # ---------------------------- File creation ----------------------------
+    # ---------------------------- Record assembly ----------------------------
+
+    def _create_company_record(self, row: pd.Series) -> Dict[str, Any]:
+        """Compose the full nested object per company."""
+        try:
+            company_id = row.get('Id')
+
+            company_details = self._build_company_details(row)
+            products_list = self._build_products_list(company_id)
+            certs_list = self._build_certifications_list(company_id)
+            testing_list = self._build_testing_capabilities_list(company_id)
+            rd_list = self._build_rd_capabilities_list(company_id)
+            # financials = self._build_financials(company_id)  # add to CompanyDetails if needed
+
+            # Compose nested object exactly per your requested structure
+            company_obj: Dict[str, Any] = {
+                "CompanyDetails": company_details,
+                "ProductsAndServices": {
+                    "ProductList": products_list
+                },
+                "QualityAndCompliance": {
+                    "CertificationsList": certs_list,
+                    "TestingCapabilitiesList": testing_list
+                },
+                "ResearchAndDevelopment": {
+                    "RDCapabilitiesList": rd_list
+                }
+            }
+
+            return company_obj
+
+        except Exception as e:
+            logger.error(f"Failed to create company record for ID {row.get('Id', 'unknown')}: {e}")
+            return {
+                "CompanyDetails": {
+                    "company_ref_no": f"CMP{str(row.get('Id', '000')).zfill(3)}",
+                    "company_id": int(row.get('Id', 0)) if str(row.get('Id', '0')).isdigit() else 0,
+                    "company_name": str(row.get('CompanyName', 'Unknown'))
+                },
+                "ProductsAndServices": { "ProductList": [] },
+                "QualityAndCompliance": {
+                    "CertificationsList": [],
+                    "TestingCapabilitiesList": []
+                },
+                "ResearchAndDevelopment": { "RDCapabilitiesList": [] },
+                "error": str(e)
+            }
+
+    # ---------------------------- Top-level creation ----------------------------
 
     def create_integrated_file(self) -> bool:
-        """Create the integrated search file from flat CSV files."""
+        """Create the integrated search file with nested structure."""
         try:
-            logger.info("🚀 Starting integrated search file creation from flat files...")
+            logger.info("🚀 Creating integrated company search file (nested)...")
 
             if 'CompanyMaster' not in self.tables:
                 logger.error("CompanyMaster table not found!")
                 return False
 
             company_df = self.tables['CompanyMaster']
-            total_companies = len(company_df)
-            logger.info(f"Processing {total_companies} companies from CompanyMaster...")
+            total = len(company_df)
+            logger.info(f"Processing {total} companies from CompanyMaster...")
 
-            integrated_data: List[Dict[str, Any]] = []
-            processed_count = 0
-            error_count = 0
+            companies: List[Dict[str, Any]] = []
+            processed = 0
+            errors = 0
 
-            for index, company_row in company_df.iterrows():
+            for idx, row in company_df.iterrows():
                 try:
-                    company_record = self._create_company_record(company_row)
-                    integrated_data.append(company_record)
-
-                    processed_count += 1
-                    if processed_count % 10 == 0:
-                        logger.info(f"Processed {processed_count}/{total_companies} companies...")
+                    companies.append(self._create_company_record(row))
+                    processed += 1
+                    if processed % 10 == 0:
+                        logger.info(f"Processed {processed}/{total} companies...")
                 except Exception as e:
-                    logger.error(f"Failed to process company at index {index}: {e}")
-                    error_count += 1
-                    continue
+                    logger.error(f"Failed at index {idx}: {e}")
+                    errors += 1
 
             metadata = {
-                'created_at': datetime.now().isoformat(),
-                'total_companies': len(integrated_data),
-                'processed_successfully': processed_count,
-                'errors': error_count,
-                'source_files': {
-                    'flat_files_dir': str(self.input_data_path),
-                    'relations_file': str(self.relations_path),
-                    'tables_loaded': list(self.tables.keys())
+                "created_at": datetime.now().isoformat(),
+                "total_companies": len(companies),
+                "processed_successfully": processed,
+                "errors": errors,
+                "source_files": {
+                    "flat_files_dir": str(self.input_data_path),
+                    "relations_file": str(self.relations_path),
+                    "tables_loaded": list(self.tables.keys())
                 },
-                'schema_version': '2.0',
-                'description': 'Integrated company search file created from flat CSV files with resolved foreign keys'
+                "schema_version": "3.0",
+                "description": (
+                    "Integrated company search file with CompanyDetails, "
+                    "ProductsAndServices/ProductList, QualityAndCompliance/{CertificationsList,TestingCapabilitiesList}, "
+                    "ResearchAndDevelopment/RDCapabilitiesList."
+                )
             }
 
-            output_data = {
-                'metadata': metadata,
-                'companies': integrated_data
-            }
+            output = { "metadata": metadata, "companies": companies }
 
             logger.info(f"Writing integrated file to: {self.output_path}")
-            with open(self.output_path, 'w', encoding='utf-8') as f:
-                json.dump(output_data, f, indent=2, ensure_ascii=False)
+            with open(self.output_path, "w", encoding="utf-8") as f:
+                json.dump(output, f, ensure_ascii=False, indent=2)
 
-            file_size_mb = self.output_path.stat().st_size / (1024 * 1024)
+            size_mb = self.output_path.stat().st_size / (1024 * 1024)
+            logger.info("✅ Integrated file created successfully!")
+            logger.info(f"   File: {self.output_path}")
+            logger.info(f"   Size: {size_mb:.2f} MB")
+            logger.info(f"   Companies: {len(companies)}")
+            logger.info(f"   Processed: {processed}")
+            logger.info(f"   Errors: {errors}")
+            logger.info(f"   Tables Used: {len(self.tables)}")
 
-            logger.info("✅ Integrated search file created successfully!")
-            logger.info(f"   📁 File: {self.output_path}")
-            logger.info(f"   📊 Size: {file_size_mb:.2f} MB")
-            logger.info(f"   🏢 Companies: {len(integrated_data)}")
-            logger.info(f"   ✅ Processed: {processed_count}")
-            logger.info(f"   ❌ Errors: {error_count}")
-            logger.info(f"   📋 Tables Used: {len(self.tables)}")
-
-            if integrated_data:
-                sample_company = integrated_data[0]
-                logger.info(f"   📝 Sample Company: {sample_company.get('company_name', 'Unknown')} "
-                            f"({sample_company.get('company_ref_no', 'Unknown')})")
-                non_empty_fields = [k for k, v in sample_company.items() if v and str(v).strip()]
-                logger.info(f"   🔍 Sample Fields ({len(non_empty_fields)}): "
-                            f"{', '.join(non_empty_fields[:10])}{'...' if len(non_empty_fields) > 10 else ''}")
+            if companies:
+                sample = companies[0]
+                # Show a quick preview of keys present
+                logger.info(f"   Sample top-level keys: {list(sample.keys())}")
 
             return True
 
@@ -537,17 +595,14 @@ class IntegratedSearchFileCreator:
 
 
 def main():
-    """Main function to create integrated search file from flat files."""
     creator = IntegratedSearchFileCreator()
-    success = creator.create_integrated_file()
+    ok = creator.create_integrated_file()
 
-    if success:
-        print("🎉 Integrated search file created successfully from flat files!")
-        print("   The file now contains data directly from CSV files with resolved foreign keys!")
+    if ok:
+        print(" Integrated search file created successfully (nested structure)!")
     else:
-        print("❌ Failed to create integrated search file")
+        print(" Failed to create integrated search file")
         return 1
-
     return 0
 
 

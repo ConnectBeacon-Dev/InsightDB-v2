@@ -1,282 +1,365 @@
 #!/usr/bin/env python3
 """
-bootstrap_pyenv_local.py — one-file, Python-only bootstrap for a local venv in CWD (no conda).
+Bootstrap/Installer for llama-cpp-python and model (Windows-friendly)
 
-Env path: ./.venv/llcpp
-Optional local CPython (Windows): ./.pyenv/python311
+Commands
+--------
+create   : Install llama-cpp-python (CPU) and ensure model file exists.
+clean    : Remove the venv (optionally wheelhouse/model).
+doctor   : Check environment (venv, llama_cpp import, model present).
+pip      : Run pip inside the venv with your arguments.
+run      : Run a Python script/module using the venv's python.
 
-Commands:
-  python bootstrap_pyenv_local.py create [--pyexe "C:\\Path\\To\\python.exe"] [--recreate]
-  python bootstrap_pyenv_local.py run -- <command...>          # e.g. -m pkg.module or script.py
-  python bootstrap_pyenv_local.py pip -- <pip args...>         # e.g. install -r requirements.txt
-  python bootstrap_pyenv_local.py freeze --full requirements.txt
-  python bootstrap_pyenv_local.py freeze --top requirements.top.txt --lock requirements.lock.txt
-  python bootstrap_pyenv_local.py doctor
-  python bootstrap_pyenv_local.py shell
-  python bootstrap_pyenv_local.py clean
+Usage examples
+--------------
+python bootstrap_pyenv_local.py create
+python bootstrap_pyenv_local.py doctor
+python bootstrap_pyenv_local.py pip -- install -r requirements.txt
+python bootstrap_pyenv_local.py run -- .\run_pyenv_pipeline.py
+python bootstrap_pyenv_local.py clean --also-wheelhouse --also-model
 """
-import os, sys, platform, stat, shutil, subprocess, urllib.request, textwrap
+
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+import venv
 from pathlib import Path
-from typing import Optional
+from typing import Tuple
 
-PROJECT_ROOT = Path.cwd()
-PYENV_HOME   = PROJECT_ROOT / ".pyenv" / "python311"     # local CPython install (Windows)
-VENV_DIR     = PROJECT_ROOT / ".venv" / "llcpp"          # project venv
-PY_VER_DOT   = "3.11.9"                                  # CPython to install locally if needed (Windows)
-PY_WIN_EXE   = PROJECT_ROOT / f"python-{PY_VER_DOT}-amd64.exe"
+CPU_EXTRA_INDEX = "https://abetlen.github.io/llama-cpp-python/whl/cpu"
+PACKAGE_NAME    = "llama-cpp-python"
 
-def log(msg):  print(f"[+] {msg}")
-def warn(msg): print(f"[!] {msg}")
+# Model config
+DEFAULT_MODEL_REPO   = "Qwen/Qwen2.5-14B-Instruct-GGUF"
+REMOTE_MODEL_FILE    = "qwen2.5-14b-instruct-q4_k_m.gguf"
+STRICT_MODEL_NAME    = "Qwen2.5-14B-Instruct-Q4_K_M.gguf"
 
-def run(cmd, env=None, check=True, cwd=None):
-    print("→", " ".join(str(c) for c in cmd))
-    return subprocess.run(cmd, env=env, check=check, cwd=cwd)
 
-def force_rmtree(p: Path):
-    if not p.exists(): return
-    def onerror(func, path, exc_info):
-        try:
-            os.chmod(path, stat.S_IWRITE)
-            func(path)
-        except Exception:
-            pass
-    shutil.rmtree(p, onerror=onerror)
+def run(cmd, check=False, env=None) -> Tuple[int, str, str]:
+    """Run a shell command, returning (code, stdout, stderr)."""
+    print(f"[RUN] {cmd}")
+    proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True)
+    if proc.stdout:
+        print(proc.stdout.rstrip())
+    if proc.stderr:
+        print(proc.stderr.rstrip())
+    if check and proc.returncode != 0:
+        raise subprocess.CalledProcessError(proc.returncode, cmd, proc.stdout, proc.stderr)
+    return proc.returncode, proc.stdout, proc.stderr
 
-# ---------- Python/venv helpers ----------
-def venv_python(venv_dir: Path) -> Path:
-    return venv_dir / ("Scripts/python.exe" if os.name == "nt" else "bin/python3")
 
-def pyenv_python_exe() -> Optional[Path]:
-    exe = PYENV_HOME / ("python.exe" if os.name == "nt" else "bin/python3")
-    return exe if exe.exists() else None
+def venv_paths(venv_dir: Path) -> Tuple[Path, Path]:
+    """Return paths to (python_exe, pip_exe) inside the venv (does not create)."""
+    py = venv_dir / ("Scripts" if os.name == "nt" else "bin") / ("python.exe" if os.name == "nt" else "python")
+    pip = venv_dir / ("Scripts" if os.name == "nt" else "bin") / ("pip.exe" if os.name == "nt" else "pip")
+    return py, pip
 
-def resolve_local_python(explicit: Optional[str] = None) -> Path:
-    """Pick a Python executable to create the venv (explicit > embedded > current > PATH)."""
-    if explicit:
-        p = Path(explicit)
-        if p.exists():
-            return p
-        warn(f"--pyexe not found: {explicit}")
-    p2 = pyenv_python_exe()
-    if p2:
-        return p2
-    if Path(sys.executable).exists():
-        return Path(sys.executable)
-    for name in ("python.exe", "python3.exe", "python", "python3"):
-        w = shutil.which(name)
-        if w:
-            return Path(w)
-    raise RuntimeError("No usable Python found to create venv.")
 
-def install_cpython_local() -> bool:
-    """Install a project-local CPython into ./.pyenv/python311 (Windows only)."""
-    if pyenv_python_exe():
-        log(f"Local CPython present at {PYENV_HOME}")
-        return True
-    if platform.system().lower() != "windows":
-        warn("Local CPython installer is only automated on Windows; using system Python instead.")
-        return False
-    url = f"https://www.python.org/ftp/python/{PY_VER_DOT}/python-{PY_VER_DOT}-amd64.exe"
-    log(f"Downloading CPython {PY_VER_DOT} -> {PY_WIN_EXE}")
-    urllib.request.urlretrieve(url, PY_WIN_EXE)
+def ensure_pip(py: Path):
+    """Ensure pip is available in the given venv python and up-to-date."""
+    code, _, _ = run(f"\"{py}\" -m pip --version")
+    if code != 0:
+        run(f"\"{py}\" -m ensurepip --upgrade", check=True)
+    run(f"\"{py}\" -m pip install --upgrade pip")
+
+
+def create_venv(venv_dir: Path) -> Tuple[Path, Path]:
+    """Create venv if needed and return (python_exe, pip_exe)."""
+    if not venv_dir.exists():
+        print(f"[INFO] Creating venv at: {venv_dir}")
+        venv.create(venv_dir, with_pip=True)
+    py, pip = venv_paths(venv_dir)
+    if not py.exists():
+        raise RuntimeError(f"Python not found in venv: {py}")
+    ensure_pip(py)
+    return py, pip
+
+
+def option1_install(venv_dir: Path, extra_index: str, package: str) -> bool:
+    """Install from extra index into venv. True on success."""
     try:
-        run([str(PY_WIN_EXE),
-             "/quiet",
-             "InstallAllUsers=0",
-             "PrependPath=0",
-             "Include_test=0",
-             "Shortcuts=0",
-             "SimpleInstall=1",
-             f"TargetDir={PYENV_HOME}"])
-    finally:
-        PY_WIN_EXE.unlink(missing_ok=True)
-    ok = bool(pyenv_python_exe())
-    if ok:
-        log(f"Installed local CPython at {PYENV_HOME}")
-    else:
-        warn("Local CPython install did not produce a usable python.exe")
-    return ok
+        py, pip = create_venv(venv_dir)
+        print("[INFO] Installing prebuilt CPU wheel from extra index (Option 1).")
+        cmd = f"\"{pip}\" install --only-binary=:all: --extra-index-url {extra_index} {package}"
+        code, _, _ = run(cmd)
+        if code == 0:
+            print("[OK] Option 1 succeeded: package installed into venv.")
+            run(f"\"{py}\" -c \"import llama_cpp,sys;print('llama_cpp OK, py=',sys.version)\"")
+            return True
+        print("[WARN] Option 1 pip install returned non-zero exit code.")
+        return False
+    except Exception as e:
+        print(f"[WARN] Option 1 failed with exception: {e}")
+        return False
 
-def ensure_venv(recreate: bool = False, pyexe: Optional[str] = None):
-    """Create/refresh .venv/llcpp with chosen Python; upgrade pip/setuptools/wheel."""
-    if recreate and VENV_DIR.exists():
-        force_rmtree(VENV_DIR)
-    if not VENV_DIR.exists():
-        VENV_DIR.parent.mkdir(parents=True, exist_ok=True)
-        # Prefer explicit Python, else embedded, else try to install embedded (Windows), else fallback to current/python on PATH
-        python = None
-        if pyexe:
-            python = Path(pyexe) if Path(pyexe).exists() else None
-            if not python:
-                warn(f"--pyexe path not found: {pyexe}")
-        if python is None:
-            python = pyenv_python_exe()
-        if python is None:
-            python = resolve_local_python(None)
 
-        if python is None and platform.system().lower() == "windows":
-            if install_cpython_local():
-                python = pyenv_python_exe()
+def option2_download_wheelhouse(wheelhouse: Path, extra_index: str, package: str) -> bool:
+    """Download wheels to local wheelhouse."""
+    wheelhouse.mkdir(parents=True, exist_ok=True)
+    print("[INFO] Downloading wheels to local wheelhouse (Option 2).")
+    cmd = (
+        f"\"{sys.executable}\" -m pip download --only-binary=:all: "
+        f"--index-url https://pypi.org/simple "
+        f"--extra-index-url {extra_index} "
+        f"-d \"{wheelhouse}\" {package}"
+    )
+    code, _, _ = run(cmd)
+    if code == 0:
+        print("[OK] Wheelhouse prepared at:", wheelhouse.resolve())
+        return True
+    print("[ERROR] pip download failed.")
+    return False
 
-        run([str(python), "-m", "venv", str(VENV_DIR)])
-        log(f"Venv created at {VENV_DIR}")
 
-    # Always ensure base tooling is up to date
-    py = str(venv_python(VENV_DIR))
-    run([py, "-m", "pip", "install", "--upgrade", "pip", "setuptools", "wheel"])
+def install_from_wheelhouse(venv_dir: Path, wheelhouse: Path, package: str) -> bool:
+    """Install into venv strictly from local wheelhouse."""
+    try:
+        py, pip = create_venv(venv_dir)
+        print("[INFO] Installing from local wheelhouse (offline style).")
+        cmd = f"\"{pip}\" install --no-index --find-links \"{wheelhouse}\" {package}"
+        code, _, _ = run(cmd)
+        if code == 0:
+            print("[OK] Installed from wheelhouse.")
+            run(f"\"{py}\" -c \"import llama_cpp,sys;print('llama_cpp OK (wheelhouse), py=',sys.version)\"")
+            return True
+        print("[ERROR] wheelhouse install failed.")
+        return False
+    except Exception as e:
+        print(f"[ERROR] wheelhouse install exception: {e}")
+        return False
 
-def run_in_env(args):
-    """Run a command inside the venv. Usage: run -- <command...>"""
-    if not args or args[0] != "--":
-        print("Usage: run -- <command...>"); sys.exit(2)
-    cmd = args[1:]
-    # If caller passed a leading "python", drop it (we're already calling venv's python)
-    if cmd and str(cmd[0]).lower().startswith("python"):
-        cmd = cmd[1:]
-    full_cmd = [str(venv_python(VENV_DIR)), *cmd]
-    env = os.environ.copy()
-    env.setdefault("PYTHONPATH", str(PROJECT_ROOT))
-    run(full_cmd, env=env, cwd=PROJECT_ROOT)
 
-def pip_in_env(args):
-    """Run pip inside the venv. Usage: pip -- <pip args>"""
-    if not args or args[0] != "--":
-        print("Usage: pip -- <pip args>"); sys.exit(2)
-    pip_args = args[1:]
-    run([str(venv_python(VENV_DIR)), "-m", "pip", *pip_args], cwd=PROJECT_ROOT)
+def ensure_model(models_dir: Path, repo: str, remote_name: str, strict_name: str) -> bool:
+    """
+    Ensure models/STRICT_NAME exists. If missing, download from HF public repo.
+    Returns True if model present or downloaded successfully.
+    """
+    models_dir.mkdir(parents=True, exist_ok=True)
+    target = models_dir / strict_name
+    if target.exists() and target.stat().st_size > 0:
+        print(f"[OK] Model already present: {target}")
+        return True
 
-def freeze_from_env(full_out: Optional[str] = None, top_out: Optional[str] = None, lock_out: Optional[str] = None):
-    """Write requirements files from the venv using importlib.metadata (pip-style)."""
-    code = r'''
-import re
-from importlib import metadata
-def canonicalize(name: str) -> str: return re.sub(r"[-_.]+", "-", name).lower()
-def parse_req_name(req: str) -> str:
-    s=req.strip(); s=s.split(";")[0].strip()
-    s=re.split(r"[<>=!~]",s,1)[0].strip(); s=s.split("[",1)[0].strip()
-    return canonicalize(s)
-dists=list(metadata.distributions()); name_to_ver={}; all_required=set()
-for d in dists:
-    try: nm=d.metadata.get("Name") or d.name
-    except Exception: nm=d.name
-    name_to_ver[canonicalize(nm)]=(nm,d.version)
-    for req in (d.requires or []):
-        try: all_required.add(parse_req_name(req))
-        except Exception: pass
-ignore={"pip","setuptools","wheel"}
-top=[c for c in name_to_ver if c not in all_required and c not in ignore]
-def emit_all(path): open(path,"w",encoding="utf-8").write("".join(f"{n}=={v}\n" for n,v in sorted(name_to_ver.values(), key=lambda x:x[0].lower())))
-def emit_top(path): open(path,"w",encoding="utf-8").write("".join(f"{name_to_ver[c][0]}=={name_to_ver[c][1]}\n" for c in sorted(top)))
-'''
-    py = str(venv_python(VENV_DIR))
-    if full_out:
-        run([py, "-c", code + f'\nemit_all(r"{full_out}")\nprint("Wrote {full_out}")\n'])
-    if top_out and lock_out:
-        run([py, "-c", code + f'\nemit_top(r"{top_out}")\nemit_all(r"{lock_out}")\nprint("Wrote {top_out} and {lock_out}")\n'])
+    url = f"https://huggingface.co/{repo}/resolve/main/{remote_name}?download=true"
+    tmp = models_dir / remote_name
+    print(f"[INFO] Downloading model:\n  {url}\n  -> {tmp}")
+    try:
+        from urllib.request import urlopen, Request
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req) as resp, open(tmp, "wb") as f:
+            import shutil as _sh
+            _sh.copyfileobj(resp, f)
+        if target.exists():
+            target.unlink()
+        tmp.rename(target)
+        print(f"[OK] Saved model to: {target}")
+        return True
+    except Exception as e:
+        print(f"[ERROR] Model download failed: {e}")
+        print("       Please download manually and place at:", target)
+        return False
 
-def doctor():
-    print("== Doctor ==")
-    print("CWD:", PROJECT_ROOT)
-    print("OS:", platform.platform())
-    print("Host Python:", sys.version)
-    print("Embedded CPython:", pyenv_python_exe())
-    print("Venv path:", VENV_DIR)
-    print("Venv exists:", VENV_DIR.exists())
-    if VENV_DIR.exists():
+
+# --------------------- Subcommand implementations ---------------------
+
+def cmd_create(args) -> int:
+    venv_dir  = Path(args.venv)
+    wheelhouse = Path(args.wheelhouse)
+    models_dir = Path(args.models_dir)
+
+    # Safe defaults if older copies of this script lacked these args
+    model_repo        = getattr(args, "model_repo", DEFAULT_MODEL_REPO)
+    model_strict_name = getattr(args, "model_strict_name", STRICT_MODEL_NAME)
+
+    # Step 1: Install llama-cpp-python
+    ok = option1_install(venv_dir, args.extra_index_url, args.package)
+    if not ok:
+        print("[INFO] Falling back to Option 2: download wheelhouse and install from it.")
+        if option2_download_wheelhouse(wheelhouse, args.extra_index_url, args.package):
+            ok = install_from_wheelhouse(venv_dir, wheelhouse, args.package)
+
+    if not ok:
+        print("[FATAL] Could not install llama-cpp-python via Option 1 or Option 2.")
+        print("        If you are fully offline, run this on an online machine first to populate the wheelhouse,")
+        print("        then copy the wheelhouse to the offline machine and re-run 'create'.")
+        return 2
+
+    # Step 2: Ensure model file exists (skip download if already there)
+    if not ensure_model(models_dir, model_repo, REMOTE_MODEL_FILE, model_strict_name):
+        print("[WARN] Proceeding without model download; install step completed.")
+        return 1
+
+    print("[DONE] Environment ready:")
+    print(f"  Venv : {venv_dir}")
+    print(f"  Model: {models_dir / model_strict_name}")
+    return 0
+
+
+def cmd_clean(args) -> int:
+    venv_dir  = Path(args.venv)
+    wheelhouse = Path(args.wheelhouse)
+    models_dir = Path(args.models_dir)
+
+    rc = 0
+    if venv_dir.exists():
+        print(f"[CLEAN] Removing venv: {venv_dir}")
         try:
-            vp = venv_python(VENV_DIR)
-            print("Venv python:", vp, "exists:", vp.exists())
-            print("Venv sample:", list(VENV_DIR.iterdir())[:5])
-        except Exception: pass
-
-def shell():
-    """Open an interactive shell with the venv activated."""
-    if os.name == "nt":
-        act = VENV_DIR / "Scripts" / "activate.bat"
-        os.system(f'start cmd /k "{act}"')
-    else:
-        os.system(f"bash -lc \"source '{VENV_DIR}/bin/activate' && exec bash\"")
-
-def clean():
-    targets = [PROJECT_ROOT / ".venv", PROJECT_ROOT / ".pyenv", PY_WIN_EXE]
-    for t in targets:
-        try:
-            if t.is_dir():
-                print("🧹 dir", t); force_rmtree(t)
-            elif t.exists():
-                print("🧹 file", t); t.unlink(missing_ok=True)
+            shutil.rmtree(venv_dir)
         except Exception as e:
-            warn(f"Could not remove {t}: {e}")
-    log("Cleanup complete.")
-
-# ---------- CLI ----------
-def main():
-    if len(sys.argv) < 2:
-        print(__doc__); sys.exit(2)
-    cmd = sys.argv[1].lower()
-    args = sys.argv[2:]
-
-    if cmd == "create":
-        # parse optional flags: --pyexe <path>, --recreate
-        pyexe = None
-        recreate = False
-        if "--pyexe" in args:
-            i = args.index("--pyexe")
-            pyexe = args[i+1] if i + 1 < len(args) else None
-            args = args[:i] + args[i+2:]
-        if "--recreate" in args:
-            recreate = True
-            args.remove("--recreate")
-
-        ensure_venv(recreate=recreate, pyexe=pyexe)
-        vp = venv_python(VENV_DIR)
-        log(f'Use without activation:\n  "{vp}" -V')
-
-    elif cmd == "run":
-        if not VENV_DIR.exists():
-            ensure_venv(recreate=False)
-        run_in_env(args)
-
-    elif cmd == "pip":
-        if not VENV_DIR.exists():
-            ensure_venv(recreate=False)
-        pip_in_env(args)
-
-    elif cmd == "freeze":
-        if "--full" in args:
-            i = args.index("--full")
-            try:
-                out = args[i+1]
-            except Exception:
-                print("freeze --full requirements.txt"); sys.exit(2)
-            freeze_from_env(full_out=out)
-        elif "--top" in args and "--lock" in args:
-            it = args.index("--top"); il = args.index("--lock")
-            try:
-                top = args[it+1]; lock = args[il+1]
-            except Exception:
-                print("freeze --top <top.txt> --lock <lock.txt>"); sys.exit(2)
-            freeze_from_env(top_out=top, lock_out=lock)
-        else:
-            print(textwrap.dedent("""\
-              Usage:
-                freeze --full requirements.txt
-                freeze --top requirements.top.txt --lock requirements.lock.txt
-            """)); sys.exit(2)
-
-    elif cmd == "doctor":
-        doctor()
-
-    elif cmd == "shell":
-        if not VENV_DIR.exists():
-            ensure_venv(recreate=False)
-        shell()
-
-    elif cmd == "clean":
-        clean()
-
+            print(f"[WARN] Failed to remove venv: {e}")
+            rc = 1
     else:
-        print("Unknown command:", cmd); print(__doc__); sys.exit(2)
+        print(f"[CLEAN] No venv at: {venv_dir}")
+
+    if args.also_wheelhouse and wheelhouse.exists():
+        print(f"[CLEAN] Removing wheelhouse: {wheelhouse}")
+        try:
+            shutil.rmtree(wheelhouse)
+        except Exception as e:
+            print(f"[WARN] Failed to remove wheelhouse: {e}")
+            rc = 1
+    elif args.also_wheelhouse:
+        print(f"[CLEAN] No wheelhouse at: {wheelhouse}")
+
+    if args.also_model:
+        target = models_dir / STRICT_MODEL_NAME
+        if target.exists():
+            try:
+                print(f"[CLEAN] Removing model file: {target}")
+                target.unlink()
+            except Exception as e:
+                print(f"[WARN] Failed to remove model: {e}")
+                rc = 1
+        else:
+            print(f"[CLEAN] No model at: {target}")
+
+    print("[CLEAN] Done.")
+    return rc
+
+
+def cmd_doctor(args) -> int:
+    import struct
+
+    ok = True
+    pyver = sys.version.split()[0]
+    bits  = 8 * struct.calcsize('P')
+    print(f"[DOCTOR] System Python: {pyver}  ({bits}-bit)")
+
+    major, minor = sys.version_info.major, sys.version_info.minor
+    if not (major == 3 and 10 <= minor <= 12):
+        print("[DOCTOR][WARN] Recommended Python 3.10-3.12 for best wheel availability.")
+        ok = False
+
+    # venv presence
+    venv_dir = Path(args.venv)
+    py, pip = venv_paths(venv_dir)
+    if py.exists():
+        print(f"[DOCTOR] Venv python: {py}")
+        code, out, _ = run(f"\"{py}\" -m pip --version")
+        if code != 0:
+            print("[DOCTOR][WARN] pip not available in venv.")
+            ok = False
+        code, out, err = run(f"\"{py}\" -c \"import llama_cpp,sys; print('llama_cpp version:', getattr(llama_cpp,'__version__','unknown'))\"")
+        if code != 0:
+            print("[DOCTOR][WARN] Cannot import llama_cpp inside venv.")
+            ok = False
+    else:
+        print(f"[DOCTOR][WARN] Venv not found at {venv_dir}. Run 'create' first.")
+        ok = False
+
+    # model check
+    model_path = Path(args.models_dir) / STRICT_MODEL_NAME
+    if model_path.exists():
+        size_mb = model_path.stat().st_size / (1024*1024)
+        print(f"[DOCTOR] Model present: {model_path}  ({size_mb:.1f} MB)")
+        if size_mb < 100:
+            print("[DOCTOR][WARN] Model file seems too small; may be incomplete.")
+            ok = False
+    else:
+        print(f"[DOCTOR][WARN] Model missing: {model_path}")
+        ok = False
+
+    if ok:
+        print("[DOCTOR] All checks passed.")
+        return 0
+    else:
+        print("[DOCTOR] Issues detected. See warnings above.")
+        return 1
+
+
+def cmd_pip(args) -> int:
+    venv_dir = Path(args.venv)
+    py, pip = venv_paths(venv_dir)
+    if not pip.exists():
+        print(f"[PIP][ERROR] Venv not found at {venv_dir}. Run 'create' first.")
+        return 2
+
+    pip_args = args.pip_args
+    if pip_args and pip_args[0] == "--":
+        pip_args = pip_args[1:]
+
+    cmd = f"\"{pip}\" " + " ".join(pip_args)
+    code, _, _ = run(cmd)
+    return code
+
+
+def cmd_run(args) -> int:
+    venv_dir = Path(args.venv)
+    py, pip = venv_paths(venv_dir)
+    if not py.exists():
+        print(f"[RUN][ERROR] Venv not found at {venv_dir}. Run 'create' first.")
+        return 2
+
+    run_args = args.run_args
+    if run_args and run_args[0] == "--":
+        run_args = run_args[1:]
+
+    # Use subprocess.run with list of arguments to preserve quoting
+    cmd_list = [str(py)] + run_args
+    cmd_display = ' '.join(f'"{arg}"' if ' ' in arg else arg for arg in cmd_list)
+    print(f"[RUN] {cmd_display}")
+    
+    proc = subprocess.run(cmd_list, env=os.environ)
+    return proc.returncode
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Bootstrap llama-cpp-python (CPU) and model file.")
+    ap.add_argument("--venv", default=".venv", help="Path to create/use Python venv for installation.")
+    ap.add_argument("--wheelhouse", default="wheelhouse", help="Folder to place downloaded wheels (fallback).")
+    ap.add_argument("--models-dir", default="models", help="Directory to store the model GGUF.")
+    ap.add_argument("--model-repo", default=DEFAULT_MODEL_REPO, help="HF repo with GGUF.")
+    ap.add_argument("--model-strict-name", default=STRICT_MODEL_NAME, help="Strict model filename to save as.")
+    ap.add_argument("--extra-index-url", default=CPU_EXTRA_INDEX, help="Extra index for prebuilt CPU wheels.")
+    ap.add_argument("--package", default=PACKAGE_NAME, help="Package name to install/download.")
+
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    sp = sub.add_parser("create", help="Install llama-cpp-python and ensure model file is present.")
+    sp.set_defaults(func=cmd_create)
+
+    sp = sub.add_parser("clean", help="Remove venv (and optionally wheelhouse/model).")
+    sp.add_argument("--also-wheelhouse", action="store_true", dest="also_wheelhouse", help="Also remove wheelhouse dir.")
+    sp.add_argument("--also-model", action="store_true", dest="also_model", help="Also remove model file.")
+    sp.set_defaults(func=cmd_clean)
+
+    sp = sub.add_parser("doctor", help="Check environment health.")
+    sp.set_defaults(func=cmd_doctor)
+
+    sp = sub.add_parser("pip", help="Run pip inside the venv with your arguments.")
+    sp.add_argument("pip_args", nargs=argparse.REMAINDER, help="Arguments to pass to pip (prefix with --).")
+    sp.set_defaults(func=cmd_pip)
+
+    sp = sub.add_parser("run", help="Run a Python script/module using the venv's python.")
+    sp.add_argument("run_args", nargs=argparse.REMAINDER, help="Arguments to pass to python (prefix with --).")
+    sp.set_defaults(func=cmd_run)
+
+    args = ap.parse_args()
+    rc = args.func(args)
+    sys.exit(rc)
+
 
 if __name__ == "__main__":
     main()

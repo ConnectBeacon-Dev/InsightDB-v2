@@ -5,7 +5,7 @@ Enhanced Query Execution with Integrated Summarization - Single File (TF-IDF + E
 - Per-company in-memory indexes (location/domain/keywords)
 - Optional Embeddings (sentence-transformers)
 - Optional TF-IDF (scikit-learn), fused with embeddings via Reciprocal Rank Fusion (RRF)
-- Intent-aware output (location → address; domain → core expertise; plus contacts/certs/R&D/testing)
+- Intent-aware output (location -> address; domain -> core expertise; plus contacts/certs/R&D/testing)
 
 Configure with:
   config = {
@@ -67,6 +67,14 @@ except Exception:
     joblib = None
     sparse = None
     _SPARSE_OK = False
+
+# ----------------------------- Optional LLM Enhancement ---------------------
+try:
+    from .llm_query_enhancer import LocalLLMQueryEnhancer
+    _LLM_ENHANCER_OK = True
+except Exception:
+    _LLM_ENHANCER_OK = False
+    LocalLLMQueryEnhancer = None
     
 # ----------------------------- Logging helpers ------------------------------
 def _make_default_logger() -> logging.Logger:
@@ -437,43 +445,155 @@ class OptimizedSearchEngine:
         self.idx_cert = {}
         self.idx_kw = {}
         for i, c in enumerate(self._companies):
+            # Extract company details from nested structure
+            company_details = c.get("CompanyDetails", {})
+            
             # Location
             for f in ("country", "state", "city", "district"):
-                v = str(c.get(f, "")).strip().lower()
+                v = str(company_details.get(f, "")).strip().lower()
                 if v:
                     self.idx_loc.setdefault(v, []).append(i)
             # Domain
             for f in ("core_expertise", "industry_domain", "business_domain"):
-                for v in as_iter(c.get(f)):
+                for v in as_iter(company_details.get(f)):
                     vs = str(v).strip().lower()
                     if vs:
                         self.idx_dom.setdefault(vs, []).append(i)
-            # Certifications
-            for v in as_iter(c.get("certifications") or c.get("certification_type")):
-                vs = str(v).strip().lower()
-                if vs:
-                    self.idx_cert.setdefault(vs, []).append(i)
-            # Keywords
+            
+            # Certifications from QualityAndCompliance section
+            certifications = c.get("QualityAndCompliance", {}).get("CertificationsList", [])
+            for cert in certifications:
+                cert_type = cert.get("certification_type_master", "")
+                cert_detail = cert.get("certification_detail", "")
+                for cert_val in [cert_type, cert_detail]:
+                    vs = str(cert_val).strip().lower()
+                    if vs and vs != "nan":
+                        self.idx_cert.setdefault(vs, []).append(i)
+                        # Also index individual words for better matching
+                        for word in vs.split():
+                            if len(word) > 2:
+                                self.idx_cert.setdefault(word, []).append(i)
+            
+            # Testing capabilities from QualityAndCompliance section
+            testing = c.get("QualityAndCompliance", {}).get("TestingCapabilitiesList", [])
+            for test in testing:
+                test_cat = test.get("test_category", "")
+                test_subcat = test.get("test_subcategory", "")
+                test_details = test.get("test_details", "")
+                for test_val in [test_cat, test_subcat, test_details]:
+                    vs = str(test_val).strip().lower()
+                    if vs and vs != "nan":
+                        self.idx_cert.setdefault(vs, []).append(i)
+                        # Also index individual words
+                        for word in vs.split():
+                            if len(word) > 2:
+                                self.idx_cert.setdefault(word, []).append(i)
+            
+            # R&D capabilities from ResearchAndDevelopment section
+            rd_capabilities = c.get("ResearchAndDevelopment", {}).get("RDCapabilitiesList", [])
+            for rd in rd_capabilities:
+                rd_cat = rd.get("rd_category", "")
+                rd_subcat = rd.get("rd_subcategory", "")
+                rd_details = rd.get("rd_details", "")
+                for rd_val in [rd_cat, rd_subcat, rd_details]:
+                    vs = str(rd_val).strip().lower()
+                    if vs and vs != "nan":
+                        self.idx_cert.setdefault(vs, []).append(i)
+                        # Also index individual words
+                        for word in vs.split():
+                            if len(word) > 2:
+                                self.idx_cert.setdefault(word, []).append(i)
+            
+            # Keywords from all relevant fields
             bag = " ".join([
-                str(c.get("company_name","")), str(c.get("llm_summary","")),
-                str(c.get("core_expertise","")), str(c.get("industry_domain","")),
-                str(c.get("certifications","")),
-                str(c.get("address","")), str(c.get("city","")), str(c.get("state","")), str(c.get("country",""))
+                str(company_details.get("company_name","")), 
+                str(company_details.get("core_expertise","")), 
+                str(company_details.get("industry_domain","")),
+                str(company_details.get("industry_subdomain","")),
+                str(company_details.get("address","")), 
+                str(company_details.get("city","")), 
+                str(company_details.get("state","")), 
+                str(company_details.get("country","")),
+                str(company_details.get("company_scale","")),
+                str(company_details.get("organization_type",""))
             ])
             for tok in set(tokenize(bag)):
                 self.idx_kw.setdefault(tok, []).append(i)
+            
+            # Also index company scale separately for better matching
+            scale = str(company_details.get("company_scale", "")).strip().lower()
+            if scale and scale != "nan":
+                self.idx_kw.setdefault(scale, []).append(i)
+                # Add scale synonyms for better matching
+                scale_synonyms = {
+                    "small": ["small", "micro"],
+                    "medium": ["medium", "mid"],
+                    "large": ["large", "big"],
+                    "enterprise": ["enterprise", "big", "large"]
+                }
+                for synonym_group, synonyms in scale_synonyms.items():
+                    if scale in synonyms:
+                        for syn in synonyms:
+                            self.idx_kw.setdefault(syn, []).append(i)
 
         # Build compact text cards once (shared by embeddings & TF-IDF)
         self._card_cache = []
         for c in self._companies:
-            card = " | ".join([
-                str(c.get("company_name","")),
-                str(c.get("llm_summary","")),
-                str(c.get("core_expertise","")),
-                str(c.get("industry_domain","")),
-                str(c.get("certifications","")),
-                str(c.get("city","")), str(c.get("state","")), str(c.get("country",""))
-            ]).strip()
+            company_details = c.get("CompanyDetails", {})
+            products = c.get("ProductsAndServices", {}).get("ProductList", [])
+            certifications = c.get("QualityAndCompliance", {}).get("CertificationsList", [])
+            testing = c.get("QualityAndCompliance", {}).get("TestingCapabilitiesList", [])
+            rd = c.get("ResearchAndDevelopment", {}).get("RDCapabilitiesList", [])
+            
+            # Build comprehensive text from all available data (same as TF-IDF API)
+            fields = [
+                str(company_details.get("company_name", "")),
+                str(company_details.get("core_expertise", "")),
+                str(company_details.get("industry_domain", "")),
+                str(company_details.get("industry_subdomain", "")),
+                str(company_details.get("address", "")),
+                str(company_details.get("city", "")),
+                str(company_details.get("state", "")),
+                str(company_details.get("country", "")),
+                str(company_details.get("company_scale", "")),
+                str(company_details.get("organization_type", "")),
+            ]
+            
+            # Add product information
+            for product in products:
+                fields.extend([
+                    str(product.get("product_name", "")),
+                    str(product.get("product_description", "")),
+                    str(product.get("product_type", "")),
+                    str(product.get("salient_features", "")),
+                ])
+            
+            # Add certification information
+            for cert in certifications:
+                fields.extend([
+                    str(cert.get("certification_detail", "")),
+                    str(cert.get("certification_type_master", "")),
+                ])
+            
+            # Add testing capabilities
+            for test in testing:
+                fields.extend([
+                    str(test.get("test_details", "")),
+                    str(test.get("test_category", "")),
+                    str(test.get("test_subcategory", "")),
+                ])
+            
+            # Add R&D capabilities
+            for rd_item in rd:
+                fields.extend([
+                    str(rd_item.get("rd_details", "")),
+                    str(rd_item.get("rd_category", "")),
+                    str(rd_item.get("rd_subcategory", "")),
+                ])
+            
+            # Filter out empty strings and "nan" values
+            meaningful_fields = [x for x in fields if x and x.lower() != "nan" and x.strip()]
+            card = " | ".join(meaningful_fields).strip()
             self._card_cache.append(card)
 
         self._built = True
@@ -668,32 +788,71 @@ class ResultProcessor:
         return f"UNK{idx+1:03d}"
 
     def from_integrated(self, d: Dict, idx: int) -> Company:
-        ref_no = self._ref_from_company(d, idx)
+        # Extract data from nested structure
+        company_details = d.get("CompanyDetails", {})
+        certifications = d.get("QualityAndCompliance", {}).get("CertificationsList", [])
+        testing = d.get("QualityAndCompliance", {}).get("TestingCapabilitiesList", [])
+        rd = d.get("ResearchAndDevelopment", {}).get("RDCapabilitiesList", [])
+        
+        ref_no = company_details.get("company_ref_no", f"UNK{idx+1:03d}")
+        
         ci = ContactInfo(
-            email=str(d.get("email","") or d.get("poc_email","")),
-            website=str(d.get("website","")),
-            phone=str(d.get("phone","")),
-            poc_email=str(d.get("poc_email","")),
+            email=str(company_details.get("email","") or company_details.get("poc_email","")),
+            website=str(company_details.get("website","")),
+            phone=str(company_details.get("phone","")),
+            poc_email=str(company_details.get("poc_email","")),
         )
+        
         def _as_list(x):
             if x is None: return []
             if isinstance(x, (list, tuple, set)): return [str(v) for v in x]
             return [str(x)]
+        
+        # Extract certifications
+        cert_list = []
+        for cert in certifications:
+            cert_type = cert.get("certification_type_master", "")
+            cert_detail = cert.get("certification_detail", "")
+            if cert_type and cert_type != "nan":
+                cert_list.append(cert_type)
+            if cert_detail and cert_detail != "nan" and cert_detail != cert_type:
+                cert_list.append(cert_detail)
+        
+        # Extract R&D categories
+        rd_list = []
+        for rd_item in rd:
+            rd_cat = rd_item.get("rd_category", "")
+            rd_subcat = rd_item.get("rd_subcategory", "")
+            if rd_cat and rd_cat != "nan":
+                rd_list.append(rd_cat)
+            if rd_subcat and rd_subcat != "nan" and rd_subcat != rd_cat:
+                rd_list.append(rd_subcat)
+        
+        # Extract testing categories
+        test_list = []
+        for test_item in testing:
+            test_cat = test_item.get("test_category", "")
+            test_subcat = test_item.get("test_subcategory", "")
+            if test_cat and test_cat != "nan":
+                test_list.append(test_cat)
+            if test_subcat and test_subcat != "nan" and test_subcat != test_cat:
+                test_list.append(test_subcat)
+        
         return Company(
             ref_no=ref_no,
-            name=str(d.get("company_name","Unknown")),
+            name=str(company_details.get("company_name","Unknown")),
             contact_info=ci,
-            domain=str(d.get("core_expertise","")),
-            industry_domain=str(d.get("industry_domain","")),
-            address=str(d.get("address","")),
-            pincode=str(d.get("pincode","")),
-            city=str(d.get("city","")),
-            state=str(d.get("state","")),
-            country=str(d.get("country","")),
-            certifications=_as_list(d.get("certifications") or d.get("certification_type")),
-            rd_categories=_as_list(d.get("rd_category")),
-            testing_categories=_as_list(d.get("test_category")),
-            score=float(d.get("score", d.get("tfidf_score", 1.0)) or 1.0),
+            domain=str(company_details.get("core_expertise","")),
+            industry_domain=str(company_details.get("industry_domain","")),
+            address=str(company_details.get("address","")),
+            pincode=str(company_details.get("pincode","")),
+            city=str(company_details.get("city","")),
+            state=str(company_details.get("state","")),
+            country=str(company_details.get("country","")),
+            certifications=cert_list,
+            rd_categories=rd_list,
+            testing_categories=test_list,
+            score=1.0,  # Default score
         )
 
 
@@ -727,6 +886,21 @@ class EnhancedQueryProcessor:
         self.intent = IntentProcessor(self.cm, self.logger)
         self.engine = OptimizedSearchEngine(self.cm, self.logger)
         self.builder = ResultProcessor(self.cm, self.logger)
+        
+        # Initialize optional LLM enhancer
+        self.llm_enhancer = None
+        if _LLM_ENHANCER_OK:
+            try:
+                self.llm_enhancer = LocalLLMQueryEnhancer(config, logger)
+                if self.llm_enhancer.is_available():
+                    self.logger.info("[LLM] Query enhancer initialized successfully")
+                else:
+                    self.logger.info("[LLM] Query enhancer available but model not loaded (fallback mode)")
+            except Exception as e:
+                self.logger.warning(f"[LLM] Failed to initialize enhancer: {e}")
+                self.llm_enhancer = None
+        else:
+            self.logger.info("[LLM] Query enhancer not available (missing dependencies)")
 
     def _intent_answer(self, companies: List[Company], intents: Tuple[str, ...], topk: int = 5) -> str:
         if not companies:
