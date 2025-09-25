@@ -1,0 +1,33 @@
+Test Case,Query,Pass/Fail,Time Taken (seconds),LLM Specific,Companies Found,Confidence,Strategy,Category,Top Results
+ISO 9001 Certification Search,companies with ISO 9001 certification,PASS,0.021,NO,20,0.290,intent_fallback,Certification,Pragati Optics; Avantel Limited; Suryansh Aerospace
+AS9100D Aerospace Certification,companies with AS9100D certification,PASS,0.016,NO,20,0.290,intent_fallback,Certification,Centum Electronics; Indra Aerospace; Tejas Avionics
+NABL Accredited Companies,NABL accredited companies,PASS,0.020,NO,20,0.258,intent_fallback,LLM Scenario,Zenith Microsystems; Aero Mechatronics; Goa Shipyard Limited
+ISO 27001 Security Certification,companies with ISO 27001 security certification,PASS,0.013,NO,20,0.290,intent_fallback,Certification,Vector Avionics; Agnikul NavCom; Garuda Aerospace
+Karnataka Based Companies,companies in Karnataka,PASS,0.016,NO,19,0.258,intent_fallback,Location,Zenith Microsystems; Agnikul NavCom; Vayu Metals
+Bengaluru Companies,companies in Bengaluru,PASS,0.016,NO,6,0.252,intent_fallback,Location,Zenith Microsystems; Agnikul NavCom; Suryansh Aerospace
+Hyderabad Companies,companies in Hyderabad,PASS,0.015,NO,6,0.252,intent_fallback,Location,Indra Aerospace; Nirbhay Dynamics; Nirbhay AeroTech
+Goa Based Companies,companies in Goa,PASS,0.011,NO,8,0.253,intent_fallback,Location,Shakti EW Systems; Goa Shipyard Limited; Garuda Dynamics
+Multi-state Companies,"companies in Karnataka, Tamil Nadu, and Andhra Pradesh",PASS,0.007,NO,20,0.266,intent_fallback,LLM Scenario,Taneja Aerospace and Aviation; Vector Electronics; Hindustan Aeronautics Limited
+Complex Multi-criteria Query,Find aerospace companies with ISO certification and avionics expertise,PASS,0.011,NO,20,0.290,intent_fallback,LLM Scenario,Paras Defence and Space Technologies; Taneja Aerospace and Aviation; Agni Composites
+Natural Language Query,Which companies can manufacture missile components and have testing facilities?,PASS,0.012,NO,20,0.272,intent_fallback,LLM Scenario,Taneja Aerospace and Aviation; Paras Defence and Space Technologies; Godrej Aerospace
+R&D Capability Query,Companies with rocket motor lab and composite layup capabilities,PASS,0.012,NO,20,0.290,intent_fallback,LLM Scenario,Paras Defence and Space Technologies; Astra Mechatronics; Suryansh Microsystems
+Scale and Domain Query,Large scale companies with RF and microwave expertise,PASS,0.013,NO,20,0.290,intent_fallback,LLM Scenario,Tejas Avionics; Taneja Aerospace and Aviation; Paras Defence and Space Technologies
+Product-specific Query,Companies manufacturing flight control computers and inertial navigation units,PASS,0.013,NO,20,0.266,intent_fallback,LLM Scenario,Vayu EW Systems; Nirbhay Optics; Shakti Avionics
+Platform-specific Query,Companies working on LCA Tejas and Su-30MKI platforms,PASS,0.013,NO,6,0.252,intent_fallback,LLM Scenario,Paras Defence and Space Technologies; Tejas RadarWorks; Tejas EW Systems
+Technology Area Query,Companies with expertise in EW systems and radar technology,PASS,0.015,NO,20,0.290,intent_fallback,LLM Scenario,Garuda Aerospace; Vayu EW Systems; Paras Defence and Space Technologies
+Export-oriented Query,Companies that export products with ITAR-free components,FAIL,0.011,YES,20,0.290,intent_fallback,LLM Scenario,Suryansh Metals; Suryansh Composites; Astra Microwave Products
+Revenue Scale Query,Companies with high revenue and strong financial performance,FAIL,0.014,YES,20,0.290,intent_fallback,LLM Scenario,Paras Defence and Space Technologies; Taneja Aerospace and Aviation; Vector Avionics
+Investment Capability Query,Companies seeking investment or funding for expansion,FAIL,0.012,YES,20,0.290,intent_fallback,LLM Scenario,Vayu Metals; Cochin Shipyard Limited; Vector Avionics
+Cost-effective Solutions Query,Companies offering cost-effective and budget-friendly solutions,FAIL,0.016,YES,2,0.251,intent_fallback,LLM Scenario,Paras Defence and Space Technologies; Taneja Aerospace and Aviation
+Radar Technologies in India with R&D and Testing,"List companies having radar technologies located in India, having test & RD facilities",PASS,0.010,YES,20,0.290,intent_fallback,Combination,MTAR Technologies; Paras Defence and Space Technologies; SFO Technologies (NeST)
+Certified Aerospace Companies in South India,Find aerospace companies with ISO certification located in Karnataka or Tamil Nadu,PASS,0.012,YES,20,0.290,intent_fallback,Combination,Vector Electronics; Taneja Aerospace and Aviation; BEL Optronic Devices
+Large Manufacturing Companies with Export Capability,Large scale manufacturing companies that can export defence products internationally,PASS,0.008,YES,20,0.290,intent_fallback,Combination,Astra Microwave Products; Mazagon Dock Shipbuilders; Shakti Avionics
+Electronics Companies with Testing and Quality Certification,Electronics companies having testing facilities and quality certifications like NABL or ISO,PASS,0.008,YES,20,0.286,intent_fallback,Certification,Taneja Aerospace and Aviation; Paras Defence and Space Technologies; Tejas EW Systems
+Composite Material Companies with R&D in Western India,Companies specializing in composite materials with R&D capabilities in Maharashtra or Gujarat,PASS,0.006,YES,20,0.290,intent_fallback,Combination,Mazagon Dock Shipbuilders; Tata Advanced Systems; Surya Robotics
+Software Companies for Defence with Security Certification,Software development companies working on defence projects with ISO 27001 security certification,PASS,0.006,YES,20,0.290,intent_fallback,Certification,Agnikul NavCom; Garuda Aerospace; Vayu Defence Systems
+Location of Garuda Defence Systems,location of Garuda Defence Systems,PASS,0.017,YES,20,0.290,intent_fallback,Location,Garuda Defence Systems; Vayu Defence Systems; Vector Defence Systems
+Revenue of Agni NavCom,Revenue of Agni NavCom,PASS,0.027,YES,6,0.252,intent_fallback,LLM Scenario,Agni NavCom; Agnikul NavCom; Sudarshan NavCom
+Companies with Hard Terrain Testing,Companies having hard terrain testing,PASS,0.015,YES,20,0.268,intent_fallback,LLM Scenario,Tejas EW Systems; Suryansh Microsystems; Agnikul Robotics
+Alpha Design Technologies Domain,What is the domain of Alpha Design Technologies,PASS,0.008,YES,13,0.255,intent_fallback,LLM Scenario,Alpha Design Technologies; MTAR Technologies; Centum Electronics
+Vector Avionics Certifications,What certifications does Vector Avionics have,PASS,0.007,YES,20,0.270,intent_fallback,Certification,Vector Avionics; Vector Electronics; Vector Mechatronics
+Paras Defence R&D Capabilities,R&D capabilities of Paras Defence and Space Technologies,PASS,0.013,YES,20,0.290,intent_fallback,LLM Scenario,Paras Defence and Space Technologies; Taneja Aerospace and Aviation; MTAR Technologies

@@ -47,3 +47,6 @@ python bootstrap_pyenv_local.py run -- .\test_pyen_integrated_query_summary.py -
 - python bootstrap_pyenv_local.py run -- -m src.query_engine.enhanced_query_with_summary
 - python bootstrap_pyenv_local.py run -- .\test_pyenv_integrated_query_summary.py
 - python bootstrap_pyenv_local.py run -- .\test_pyenv_integrated_query_summary.py --query "location of Company_003"
+
+### Comprehensive test
+- python bootstrap_pyenv_local.py run -- -m comprehensive_test.test_comprehensive_search_validation

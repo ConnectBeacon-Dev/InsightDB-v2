@@ -1,0 +1,1071 @@
+[
+  {
+    "test_name": "ISO 9001 Certification Search",
+    "query": "companies with ISO 9001 certification",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.02113938331604004,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with certifications",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "ISO": 20,
+          "9001": 20
+        },
+        "total_matches": 40,
+        "details": "Found 40 keyword matches: {'ISO': 20, '9001': 20}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Cochin Shipyard Limited' found as 'Cochin Shipyard Limited'",
+          "Expected 'Solar Industries' found as 'Solar Industries India (Defence)'",
+          "Expected 'Garuda Defence Systems' found as 'Garuda Defence Systems'"
+        ],
+        "details": "Found 3 expected companies: [\"Expected 'Cochin Shipyard Limited' found as 'Cochin Shipyard Limited'\", \"Expected 'Solar Industries' found as 'Solar Industries India (Defence)'\", \"Expected 'Garuda Defence Systems' found as 'Garuda Defence Systems'\"]"
+      }
+    },
+    "top_companies": [
+      "Pragati Optics",
+      "Avantel Limited",
+      "Suryansh Aerospace",
+      "Garuda Dynamics",
+      "Hindustan Aeronautics Limited"
+    ]
+  },
+  {
+    "test_name": "AS9100D Aerospace Certification",
+    "query": "companies with AS9100D certification",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.015607118606567383,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with certifications",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "AS9100D": 20
+        },
+        "total_matches": 20,
+        "details": "Found 20 keyword matches: {'AS9100D': 20}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Alpha Design Technologies' found as 'Alpha Design Technologies'",
+          "Expected 'Pragati Metals' found as 'Pragati Metals'",
+          "Expected 'Suryansh Composites' found as 'Suryansh Composites'"
+        ],
+        "details": "Found 3 expected companies: [\"Expected 'Alpha Design Technologies' found as 'Alpha Design Technologies'\", \"Expected 'Pragati Metals' found as 'Pragati Metals'\", \"Expected 'Suryansh Composites' found as 'Suryansh Composites'\"]"
+      }
+    },
+    "top_companies": [
+      "Centum Electronics",
+      "Indra Aerospace",
+      "Tejas Avionics",
+      "Nirbhay Dynamics",
+      "Surya EW Systems"
+    ]
+  },
+  {
+    "test_name": "NABL Accredited Companies",
+    "query": "NABL accredited companies",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.258,
+    "strategy": "intent_fallback",
+    "processing_time": 0.019774436950683594,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with certifications",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "NABL": 20,
+          "accreditation": 20
+        },
+        "total_matches": 40,
+        "details": "Found 40 keyword matches: {'NABL': 20, 'accreditation': 20}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Agni NavCom' found as 'Agni NavCom'",
+          "Expected 'Goa Shipyard Limited' found as 'Goa Shipyard Limited'",
+          "Expected 'Bharat Forge' found as 'Bharat Forge (Defence)'"
+        ],
+        "details": "Found 3 expected companies: [\"Expected 'Agni NavCom' found as 'Agni NavCom'\", \"Expected 'Goa Shipyard Limited' found as 'Goa Shipyard Limited'\", \"Expected 'Bharat Forge' found as 'Bharat Forge (Defence)'\"]"
+      }
+    },
+    "top_companies": [
+      "Zenith Microsystems",
+      "Aero Mechatronics",
+      "Goa Shipyard Limited",
+      "Nirbhay EW Systems",
+      "Data Patterns (India)"
+    ]
+  },
+  {
+    "test_name": "ISO 27001 Security Certification",
+    "query": "companies with ISO 27001 security certification",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.013250589370727539,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with certifications",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "ISO": 20,
+          "27001": 20
+        },
+        "total_matches": 40,
+        "details": "Found 40 keyword matches: {'ISO': 20, '27001': 20}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Vector Avionics' found as 'Vector Avionics'",
+          "Expected 'Mahindra Defence Systems' found as 'Mahindra Defence Systems'",
+          "Expected 'BEL Optronic Devices' found as 'BEL Optronic Devices'"
+        ],
+        "details": "Found 3 expected companies: [\"Expected 'Vector Avionics' found as 'Vector Avionics'\", \"Expected 'Mahindra Defence Systems' found as 'Mahindra Defence Systems'\", \"Expected 'BEL Optronic Devices' found as 'BEL Optronic Devices'\"]"
+      }
+    },
+    "top_companies": [
+      "Vector Avionics",
+      "Agnikul NavCom",
+      "Garuda Aerospace",
+      "Vayu Defence Systems",
+      "Agni Composites"
+    ]
+  },
+  {
+    "test_name": "Karnataka Based Companies",
+    "query": "companies in Karnataka",
+    "passed": true,
+    "companies_found": 19,
+    "confidence": 0.2576,
+    "strategy": "intent_fallback",
+    "processing_time": 0.015784263610839844,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 19 companies with location data",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Karnataka": 19,
+          "Bengaluru": 6,
+          "Mangaluru": 8
+        },
+        "total_matches": 33,
+        "details": "Found 33 keyword matches: {'Karnataka': 19, 'Bengaluru': 6, 'Mangaluru': 8}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Vayu Metals' found as 'Vayu Metals'",
+          "Expected 'Alpha Design Technologies' found as 'Alpha Design Technologies'"
+        ],
+        "details": "Found 2 expected companies: [\"Expected 'Vayu Metals' found as 'Vayu Metals'\", \"Expected 'Alpha Design Technologies' found as 'Alpha Design Technologies'\"]"
+      }
+    },
+    "top_companies": [
+      "Zenith Microsystems",
+      "Agnikul NavCom",
+      "Vayu Metals",
+      "Nirbhay EW Systems",
+      "Suryansh Aerospace"
+    ]
+  },
+  {
+    "test_name": "Bengaluru Companies",
+    "query": "companies in Bengaluru",
+    "passed": true,
+    "companies_found": 6,
+    "confidence": 0.2524,
+    "strategy": "intent_fallback",
+    "processing_time": 0.016037940979003906,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 6 companies with location data",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Bengaluru": 6,
+          "Karnataka": 6
+        },
+        "total_matches": 12,
+        "details": "Found 12 keyword matches: {'Bengaluru': 6, 'Karnataka': 6}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Solar Industries' found as 'Solar Industries India (Defence)'",
+          "Expected 'ideaForge Technology' found as 'ideaForge Technology'"
+        ],
+        "details": "Found 2 expected companies: [\"Expected 'Solar Industries' found as 'Solar Industries India (Defence)'\", \"Expected 'ideaForge Technology' found as 'ideaForge Technology'\"]"
+      }
+    },
+    "top_companies": [
+      "Zenith Microsystems",
+      "Agnikul NavCom",
+      "Suryansh Aerospace",
+      "Solar Industries India (Defence)",
+      "Kalyani Strategic Systems"
+    ]
+  },
+  {
+    "test_name": "Hyderabad Companies",
+    "query": "companies in Hyderabad",
+    "passed": true,
+    "companies_found": 6,
+    "confidence": 0.2524,
+    "strategy": "intent_fallback",
+    "processing_time": 0.015144109725952148,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 6 companies with location data",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Hyderabad": 6,
+          "Telangana": 6
+        },
+        "total_matches": 12,
+        "details": "Found 12 keyword matches: {'Hyderabad': 6, 'Telangana': 6}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Bharat Forge' found as 'Bharat Forge (Defence)'",
+          "Expected 'Paras Defence' found as 'Paras Defence and Space Technologies'"
+        ],
+        "details": "Found 2 expected companies: [\"Expected 'Bharat Forge' found as 'Bharat Forge (Defence)'\", \"Expected 'Paras Defence' found as 'Paras Defence and Space Technologies'\"]"
+      }
+    },
+    "top_companies": [
+      "Indra Aerospace",
+      "Nirbhay Dynamics",
+      "Nirbhay AeroTech",
+      "Bharat Forge (Defence)",
+      "Indra Mechatronics"
+    ]
+  },
+  {
+    "test_name": "Goa Based Companies",
+    "query": "companies in Goa",
+    "passed": true,
+    "companies_found": 8,
+    "confidence": 0.2532,
+    "strategy": "intent_fallback",
+    "processing_time": 0.011403322219848633,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 8 companies with location data",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Goa": 8,
+          "Panaji": 4,
+          "Vasco": 3
+        },
+        "total_matches": 15,
+        "details": "Found 15 keyword matches: {'Goa': 8, 'Panaji': 4, 'Vasco': 3}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Agnikul Mechatronics' found as 'Agnikul Mechatronics'",
+          "Expected 'Agni NavCom' found as 'Agni NavCom'"
+        ],
+        "details": "Found 2 expected companies: [\"Expected 'Agnikul Mechatronics' found as 'Agnikul Mechatronics'\", \"Expected 'Agni NavCom' found as 'Agni NavCom'\"]"
+      }
+    },
+    "top_companies": [
+      "Shakti EW Systems",
+      "Goa Shipyard Limited",
+      "Garuda Dynamics",
+      "Agnikul Mechatronics",
+      "Akriti Electronics"
+    ]
+  },
+  {
+    "test_name": "Multi-state Companies",
+    "query": "companies in Karnataka, Tamil Nadu, and Andhra Pradesh",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.2656,
+    "strategy": "intent_fallback",
+    "processing_time": 0.007040977478027344,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with location data",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Karnataka": 6,
+          "Tamil Nadu": 3,
+          "Andhra Pradesh": 4
+        },
+        "total_matches": 13,
+        "details": "Found 13 keyword matches: {'Karnataka': 6, 'Tamil Nadu': 3, 'Andhra Pradesh': 4}"
+      }
+    },
+    "top_companies": [
+      "Taneja Aerospace and Aviation",
+      "Vector Electronics",
+      "Hindustan Aeronautics Limited",
+      "Sudarshan Power",
+      "BEL Optronic Devices"
+    ]
+  },
+  {
+    "test_name": "Complex Multi-criteria Query",
+    "query": "Find aerospace companies with ISO certification and avionics expertise",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.010939598083496094,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 defence/aerospace companies",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "aerospace": 20,
+          "avionics": 15,
+          "ISO": 19
+        },
+        "total_matches": 54,
+        "details": "Found 54 keyword matches: {'aerospace': 20, 'avionics': 15, 'ISO': 19}"
+      }
+    },
+    "top_companies": [
+      "Paras Defence and Space Technologies",
+      "Taneja Aerospace and Aviation",
+      "Agni Composites",
+      "Vector Avionics",
+      "Vector Electronics"
+    ]
+  },
+  {
+    "test_name": "Natural Language Query",
+    "query": "Which companies can manufacture missile components and have testing facilities?",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.272,
+    "strategy": "intent_fallback",
+    "processing_time": 0.011559486389160156,
+    "is_llm_specific": false,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "missile": 0,
+          "testing": 18,
+          "manufacturing": 1
+        },
+        "total_matches": 19,
+        "details": "Found 19 keyword matches: {'missile': 0, 'testing': 18, 'manufacturing': 1}"
+      }
+    },
+    "top_companies": [
+      "Taneja Aerospace and Aviation",
+      "Paras Defence and Space Technologies",
+      "Godrej Aerospace",
+      "Garden Reach Shipbuilders & Engineers",
+      "Vayu Power"
+    ]
+  },
+  {
+    "test_name": "R&D Capability Query",
+    "query": "Companies with rocket motor lab and composite layup capabilities",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.012176752090454102,
+    "is_llm_specific": false,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with R&D capabilities",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "rocket": 18,
+          "motor": 18,
+          "composite": 8,
+          "layup": 6
+        },
+        "total_matches": 50,
+        "details": "Found 50 keyword matches: {'rocket': 18, 'motor': 18, 'composite': 8, 'layup': 6}"
+      }
+    },
+    "top_companies": [
+      "Paras Defence and Space Technologies",
+      "Astra Mechatronics",
+      "Suryansh Microsystems",
+      "Pragati Metals",
+      "Surya Robotics"
+    ]
+  },
+  {
+    "test_name": "Scale and Domain Query",
+    "query": "Large scale companies with RF and microwave expertise",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.013438940048217773,
+    "is_llm_specific": false,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "large": 0,
+          "RF": 16,
+          "microwave": 12
+        },
+        "total_matches": 28,
+        "details": "Found 28 keyword matches: {'large': 0, 'RF': 16, 'microwave': 12}"
+      }
+    },
+    "top_companies": [
+      "Tejas Avionics",
+      "Taneja Aerospace and Aviation",
+      "Paras Defence and Space Technologies",
+      "Nirbhay Optics",
+      "BEL Optronic Devices"
+    ]
+  },
+  {
+    "test_name": "Product-specific Query",
+    "query": "Companies manufacturing flight control computers and inertial navigation units",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.2656,
+    "strategy": "intent_fallback",
+    "processing_time": 0.013120174407958984,
+    "is_llm_specific": false,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "flight": 11,
+          "control": 15,
+          "computer": 0,
+          "inertial": 0,
+          "navigation": 0
+        },
+        "total_matches": 26,
+        "details": "Found 26 keyword matches: {'flight': 11, 'control': 15, 'computer': 0, 'inertial': 0, 'navigation': 0}"
+      }
+    },
+    "top_companies": [
+      "Vayu EW Systems",
+      "Nirbhay Optics",
+      "Shakti Avionics",
+      "Tejas EW Systems",
+      "Astra Microsystems"
+    ]
+  },
+  {
+    "test_name": "Platform-specific Query",
+    "query": "Companies working on LCA Tejas and Su-30MKI platforms",
+    "passed": true,
+    "companies_found": 6,
+    "confidence": 0.2524,
+    "strategy": "intent_fallback",
+    "processing_time": 0.012945175170898438,
+    "is_llm_specific": false,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "LCA": 0,
+          "Tejas": 4,
+          "Su-30MKI": 0,
+          "platform": 0
+        },
+        "total_matches": 4,
+        "details": "Found 4 keyword matches: {'LCA': 0, 'Tejas': 4, 'Su-30MKI': 0, 'platform': 0}"
+      }
+    },
+    "top_companies": [
+      "Paras Defence and Space Technologies",
+      "Tejas RadarWorks",
+      "Tejas EW Systems",
+      "Taneja Aerospace and Aviation",
+      "Tejas Aerospace"
+    ]
+  },
+  {
+    "test_name": "Technology Area Query",
+    "query": "Companies with expertise in EW systems and radar technology",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.014675140380859375,
+    "is_llm_specific": false,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "EW": 8,
+          "electronic": 7,
+          "warfare": 0,
+          "radar": 1
+        },
+        "total_matches": 16,
+        "details": "Found 16 keyword matches: {'EW': 8, 'electronic': 7, 'warfare': 0, 'radar': 1}"
+      }
+    },
+    "top_companies": [
+      "Garuda Aerospace",
+      "Vayu EW Systems",
+      "Paras Defence and Space Technologies",
+      "Surya EW Systems",
+      "Taneja Aerospace and Aviation"
+    ]
+  },
+  {
+    "test_name": "Export-oriented Query",
+    "query": "Companies that export products with ITAR-free components",
+    "passed": false,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.01146697998046875,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": false,
+        "matches": {
+          "export": 0,
+          "ITAR-free": 0
+        },
+        "total_matches": 0,
+        "details": "Found 0 keyword matches: {'export': 0, 'ITAR-free': 0}"
+      }
+    },
+    "top_companies": [
+      "Suryansh Metals",
+      "Suryansh Composites",
+      "Astra Microwave Products",
+      "Nirbhay Dynamics",
+      "Aero Mechatronics"
+    ]
+  },
+  {
+    "test_name": "Revenue Scale Query",
+    "query": "Companies with high revenue and strong financial performance",
+    "passed": false,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.013585567474365234,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": false,
+        "matches": {
+          "revenue": 0,
+          "financial": 0,
+          "turnover": 0
+        },
+        "total_matches": 0,
+        "details": "Found 0 keyword matches: {'revenue': 0, 'financial': 0, 'turnover': 0}"
+      }
+    },
+    "top_companies": [
+      "Paras Defence and Space Technologies",
+      "Taneja Aerospace and Aviation",
+      "Vector Avionics",
+      "Vayu Metals",
+      "Alpha Design Technologies"
+    ]
+  },
+  {
+    "test_name": "Investment Capability Query",
+    "query": "Companies seeking investment or funding for expansion",
+    "passed": false,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.012084007263183594,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": false,
+        "matches": {
+          "investment": 0,
+          "funding": 0,
+          "expansion": 0
+        },
+        "total_matches": 0,
+        "details": "Found 0 keyword matches: {'investment': 0, 'funding': 0, 'expansion': 0}"
+      }
+    },
+    "top_companies": [
+      "Vayu Metals",
+      "Cochin Shipyard Limited",
+      "Vector Avionics",
+      "Agnikul Mechatronics",
+      "Alpha Design Technologies"
+    ]
+  },
+  {
+    "test_name": "Cost-effective Solutions Query",
+    "query": "Companies offering cost-effective and budget-friendly solutions",
+    "passed": false,
+    "companies_found": 2,
+    "confidence": 0.2508,
+    "strategy": "intent_fallback",
+    "processing_time": 0.015690088272094727,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": false,
+        "matches": {
+          "cost-effective": 0,
+          "budget": 0,
+          "affordable": 0
+        },
+        "total_matches": 0,
+        "details": "Found 0 keyword matches: {'cost-effective': 0, 'budget': 0, 'affordable': 0}"
+      }
+    },
+    "top_companies": [
+      "Paras Defence and Space Technologies",
+      "Taneja Aerospace and Aviation"
+    ]
+  },
+  {
+    "test_name": "Radar Technologies in India with R&D and Testing",
+    "query": "List companies having radar technologies located in India, having test & RD facilities",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.010117530822753906,
+    "is_llm_specific": true,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with R&D capabilities",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "radar": 1,
+          "India": 0,
+          "test": 12,
+          "RD": 0,
+          "R&D": 0
+        },
+        "total_matches": 13,
+        "details": "Found 13 keyword matches: {'radar': 1, 'India': 0, 'test': 12, 'RD': 0, 'R&D': 0}"
+      }
+    },
+    "top_companies": [
+      "MTAR Technologies",
+      "Paras Defence and Space Technologies",
+      "SFO Technologies (NeST)",
+      "Nirbhay Dynamics",
+      "Pragati Optics"
+    ]
+  },
+  {
+    "test_name": "Certified Aerospace Companies in South India",
+    "query": "Find aerospace companies with ISO certification located in Karnataka or Tamil Nadu",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.011755943298339844,
+    "is_llm_specific": true,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 defence/aerospace companies",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "aerospace": 20,
+          "ISO": 17,
+          "Karnataka": 12,
+          "Tamil Nadu": 3
+        },
+        "total_matches": 52,
+        "details": "Found 52 keyword matches: {'aerospace': 20, 'ISO': 17, 'Karnataka': 12, 'Tamil Nadu': 3}"
+      }
+    },
+    "top_companies": [
+      "Vector Electronics",
+      "Taneja Aerospace and Aviation",
+      "BEL Optronic Devices",
+      "Agnikul NavCom",
+      "Suryansh Aerospace"
+    ]
+  },
+  {
+    "test_name": "Large Manufacturing Companies with Export Capability",
+    "query": "Large scale manufacturing companies that can export defence products internationally",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.007803916931152344,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "large": 0,
+          "manufacturing": 8,
+          "export": 0,
+          "defence": 20,
+          "international": 0
+        },
+        "total_matches": 28,
+        "details": "Found 28 keyword matches: {'large': 0, 'manufacturing': 8, 'export': 0, 'defence': 20, 'international': 0}"
+      }
+    },
+    "top_companies": [
+      "Astra Microwave Products",
+      "Mazagon Dock Shipbuilders",
+      "Shakti Avionics",
+      "ideaForge Technology",
+      "Vector Avionics"
+    ]
+  },
+  {
+    "test_name": "Electronics Companies with Testing and Quality Certification",
+    "query": "Electronics companies having testing facilities and quality certifications like NABL or ISO",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.2864,
+    "strategy": "intent_fallback",
+    "processing_time": 0.0077571868896484375,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "electronics": 12,
+          "testing": 16,
+          "NABL": 10,
+          "ISO": 10,
+          "quality": 0
+        },
+        "total_matches": 48,
+        "details": "Found 48 keyword matches: {'electronics': 12, 'testing': 16, 'NABL': 10, 'ISO': 10, 'quality': 0}"
+      }
+    },
+    "top_companies": [
+      "Taneja Aerospace and Aviation",
+      "Paras Defence and Space Technologies",
+      "Tejas EW Systems",
+      "Vector Electronics",
+      "Agni NavCom"
+    ]
+  },
+  {
+    "test_name": "Composite Material Companies with R&D in Western India",
+    "query": "Companies specializing in composite materials with R&D capabilities in Maharashtra or Gujarat",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.005576133728027344,
+    "is_llm_specific": true,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with R&D capabilities",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "composite": 13,
+          "materials": 13,
+          "R&D": 0,
+          "Maharashtra": 6,
+          "Gujarat": 3
+        },
+        "total_matches": 35,
+        "details": "Found 35 keyword matches: {'composite': 13, 'materials': 13, 'R&D': 0, 'Maharashtra': 6, 'Gujarat': 3}"
+      }
+    },
+    "top_companies": [
+      "Mazagon Dock Shipbuilders",
+      "Tata Advanced Systems",
+      "Surya Robotics",
+      "Shakti EW Systems",
+      "Sudarshan EW Systems"
+    ]
+  },
+  {
+    "test_name": "Software Companies for Defence with Security Certification",
+    "query": "Software development companies working on defence projects with ISO 27001 security certification",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.005593061447143555,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "software": 3,
+          "defence": 20,
+          "ISO 27001": 20,
+          "security": 0
+        },
+        "total_matches": 43,
+        "details": "Found 43 keyword matches: {'software': 3, 'defence': 20, 'ISO 27001': 20, 'security': 0}"
+      }
+    },
+    "top_companies": [
+      "Agnikul NavCom",
+      "Garuda Aerospace",
+      "Vayu Defence Systems",
+      "Vector Avionics",
+      "Agni Composites"
+    ]
+  },
+  {
+    "test_name": "Location of Garuda Defence Systems",
+    "query": "location of Garuda Defence Systems",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.017331361770629883,
+    "is_llm_specific": true,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with location data",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Garuda": 6,
+          "Defence": 20,
+          "Systems": 17
+        },
+        "total_matches": 43,
+        "details": "Found 43 keyword matches: {'Garuda': 6, 'Defence': 20, 'Systems': 17}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Garuda Defence Systems' found as 'Garuda Defence Systems'"
+        ],
+        "details": "Found 1 expected companies: [\"Expected 'Garuda Defence Systems' found as 'Garuda Defence Systems'\"]"
+      }
+    },
+    "top_companies": [
+      "Garuda Defence Systems",
+      "Vayu Defence Systems",
+      "Vector Defence Systems",
+      "Garuda Aerospace",
+      "Garuda AeroTech"
+    ]
+  },
+  {
+    "test_name": "Revenue of Agni NavCom",
+    "query": "Revenue of Agni NavCom",
+    "passed": true,
+    "companies_found": 6,
+    "confidence": 0.2524,
+    "strategy": "intent_fallback",
+    "processing_time": 0.027120590209960938,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Agni": 5,
+          "NavCom": 3
+        },
+        "total_matches": 8,
+        "details": "Found 8 keyword matches: {'Agni': 5, 'NavCom': 3}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Agni NavCom' found as 'Agni NavCom'"
+        ],
+        "details": "Found 1 expected companies: [\"Expected 'Agni NavCom' found as 'Agni NavCom'\"]"
+      }
+    },
+    "top_companies": [
+      "Agni NavCom",
+      "Agnikul NavCom",
+      "Sudarshan NavCom",
+      "Agni Composites",
+      "Agni Electronics"
+    ]
+  },
+  {
+    "test_name": "Companies with Hard Terrain Testing",
+    "query": "Companies having hard terrain testing",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.26839999999999997,
+    "strategy": "intent_fallback",
+    "processing_time": 0.015302181243896484,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "hard": 0,
+          "terrain": 0,
+          "testing": 20
+        },
+        "total_matches": 20,
+        "details": "Found 20 keyword matches: {'hard': 0, 'terrain': 0, 'testing': 20}"
+      }
+    },
+    "top_companies": [
+      "Tejas EW Systems",
+      "Suryansh Microsystems",
+      "Agnikul Robotics",
+      "Garden Reach Shipbuilders & Engineers",
+      "Dynamatic Technologies (Aerospace)"
+    ]
+  },
+  {
+    "test_name": "Alpha Design Technologies Domain",
+    "query": "What is the domain of Alpha Design Technologies",
+    "passed": true,
+    "companies_found": 13,
+    "confidence": 0.2552,
+    "strategy": "intent_fallback",
+    "processing_time": 0.007892370223999023,
+    "is_llm_specific": true,
+    "validation_details": {
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Alpha": 1,
+          "Design": 8,
+          "Technologies": 6
+        },
+        "total_matches": 15,
+        "details": "Found 15 keyword matches: {'Alpha': 1, 'Design': 8, 'Technologies': 6}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Alpha Design Technologies' found as 'Alpha Design Technologies'"
+        ],
+        "details": "Found 1 expected companies: [\"Expected 'Alpha Design Technologies' found as 'Alpha Design Technologies'\"]"
+      }
+    },
+    "top_companies": [
+      "Alpha Design Technologies",
+      "MTAR Technologies",
+      "Centum Electronics",
+      "Paras Defence and Space Technologies",
+      "SFO Technologies (NeST)"
+    ]
+  },
+  {
+    "test_name": "Vector Avionics Certifications",
+    "query": "What certifications does Vector Avionics have",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.2704,
+    "strategy": "intent_fallback",
+    "processing_time": 0.00706791877746582,
+    "is_llm_specific": true,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 16 companies with certifications",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Vector": 4,
+          "Avionics": 19,
+          "certifications": 0
+        },
+        "total_matches": 23,
+        "details": "Found 23 keyword matches: {'Vector': 4, 'Avionics': 19, 'certifications': 0}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Vector Avionics' found as 'Vector Avionics'"
+        ],
+        "details": "Found 1 expected companies: [\"Expected 'Vector Avionics' found as 'Vector Avionics'\"]"
+      }
+    },
+    "top_companies": [
+      "Vector Avionics",
+      "Vector Electronics",
+      "Vector Mechatronics",
+      "Vector Defence Systems",
+      "Agni Composites"
+    ]
+  },
+  {
+    "test_name": "Paras Defence R&D Capabilities",
+    "query": "R&D capabilities of Paras Defence and Space Technologies",
+    "passed": true,
+    "companies_found": 20,
+    "confidence": 0.29000000000000004,
+    "strategy": "intent_fallback",
+    "processing_time": 0.013278961181640625,
+    "is_llm_specific": true,
+    "validation_details": {
+      "passed": true,
+      "details": "Found 20 companies with R&D capabilities",
+      "keyword_validation": {
+        "passed": true,
+        "matches": {
+          "Paras": 1,
+          "Defence": 20,
+          "R&D": 0,
+          "capabilities": 0
+        },
+        "total_matches": 21,
+        "details": "Found 21 keyword matches: {'Paras': 1, 'Defence': 20, 'R&D': 0, 'capabilities': 0}"
+      },
+      "company_validation": {
+        "passed": true,
+        "matches": [
+          "Expected 'Paras Defence and Space Technologies' found as 'Paras Defence and Space Technologies'"
+        ],
+        "details": "Found 1 expected companies: [\"Expected 'Paras Defence and Space Technologies' found as 'Paras Defence and Space Technologies'\"]"
+      }
+    },
+    "top_companies": [
+      "Paras Defence and Space Technologies",
+      "Taneja Aerospace and Aviation",
+      "MTAR Technologies",
+      "SFO Technologies (NeST)",
+      "Dynamatic Technologies (Aerospace)"
+    ]
+  }
+]
