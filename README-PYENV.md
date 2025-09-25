@@ -50,3 +50,4 @@ python bootstrap_pyenv_local.py run -- .\test_pyen_integrated_query_summary.py -
 
 ### Comprehensive test
 - python bootstrap_pyenv_local.py run -- -m comprehensive_test.test_comprehensive_search_validation
+- python bootstrap_pyenv_local.py run -- .\run_pyenv_pipeline.py

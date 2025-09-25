@@ -6,7 +6,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.02113938331604004,
+    "processing_time": 6.835910320281982,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -45,7 +45,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.015607118606567383,
+    "processing_time": 6.941230058670044,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -83,7 +83,7 @@
     "companies_found": 20,
     "confidence": 0.258,
     "strategy": "intent_fallback",
-    "processing_time": 0.019774436950683594,
+    "processing_time": 7.043849229812622,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -122,7 +122,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.013250589370727539,
+    "processing_time": 6.808218717575073,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -161,7 +161,7 @@
     "companies_found": 19,
     "confidence": 0.2576,
     "strategy": "intent_fallback",
-    "processing_time": 0.015784263610839844,
+    "processing_time": 6.727820634841919,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -200,7 +200,7 @@
     "companies_found": 6,
     "confidence": 0.2524,
     "strategy": "intent_fallback",
-    "processing_time": 0.016037940979003906,
+    "processing_time": 6.645357608795166,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -238,7 +238,7 @@
     "companies_found": 6,
     "confidence": 0.2524,
     "strategy": "intent_fallback",
-    "processing_time": 0.015144109725952148,
+    "processing_time": 8.419797420501709,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -276,7 +276,7 @@
     "companies_found": 8,
     "confidence": 0.2532,
     "strategy": "intent_fallback",
-    "processing_time": 0.011403322219848633,
+    "processing_time": 7.195588111877441,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -315,7 +315,7 @@
     "companies_found": 20,
     "confidence": 0.2656,
     "strategy": "intent_fallback",
-    "processing_time": 0.007040977478027344,
+    "processing_time": 6.884382724761963,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -346,7 +346,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.010939598083496094,
+    "processing_time": 6.847568035125732,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -377,7 +377,7 @@
     "companies_found": 20,
     "confidence": 0.272,
     "strategy": "intent_fallback",
-    "processing_time": 0.011559486389160156,
+    "processing_time": 6.6757972240448,
     "is_llm_specific": false,
     "validation_details": {
       "keyword_validation": {
@@ -406,7 +406,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.012176752090454102,
+    "processing_time": 7.036492109298706,
     "is_llm_specific": false,
     "validation_details": {
       "passed": true,
@@ -438,7 +438,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.013438940048217773,
+    "processing_time": 6.78459358215332,
     "is_llm_specific": false,
     "validation_details": {
       "keyword_validation": {
@@ -467,7 +467,7 @@
     "companies_found": 20,
     "confidence": 0.2656,
     "strategy": "intent_fallback",
-    "processing_time": 0.013120174407958984,
+    "processing_time": 6.675466537475586,
     "is_llm_specific": false,
     "validation_details": {
       "keyword_validation": {
@@ -498,7 +498,7 @@
     "companies_found": 6,
     "confidence": 0.2524,
     "strategy": "intent_fallback",
-    "processing_time": 0.012945175170898438,
+    "processing_time": 7.352306365966797,
     "is_llm_specific": false,
     "validation_details": {
       "keyword_validation": {
@@ -528,7 +528,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.014675140380859375,
+    "processing_time": 6.688684701919556,
     "is_llm_specific": false,
     "validation_details": {
       "keyword_validation": {
@@ -558,7 +558,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.01146697998046875,
+    "processing_time": 6.614739179611206,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -586,7 +586,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.013585567474365234,
+    "processing_time": 6.683384418487549,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -615,7 +615,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.012084007263183594,
+    "processing_time": 6.622804641723633,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -644,7 +644,7 @@
     "companies_found": 2,
     "confidence": 0.2508,
     "strategy": "intent_fallback",
-    "processing_time": 0.015690088272094727,
+    "processing_time": 6.661329746246338,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -670,7 +670,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.010117530822753906,
+    "processing_time": 6.884505987167358,
     "is_llm_specific": true,
     "validation_details": {
       "passed": true,
@@ -703,7 +703,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.011755943298339844,
+    "processing_time": 6.764577865600586,
     "is_llm_specific": true,
     "validation_details": {
       "passed": true,
@@ -735,7 +735,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.007803916931152344,
+    "processing_time": 6.625879526138306,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -766,7 +766,7 @@
     "companies_found": 20,
     "confidence": 0.2864,
     "strategy": "intent_fallback",
-    "processing_time": 0.0077571868896484375,
+    "processing_time": 6.722405195236206,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -797,7 +797,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.005576133728027344,
+    "processing_time": 6.593963384628296,
     "is_llm_specific": true,
     "validation_details": {
       "passed": true,
@@ -830,7 +830,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.005593061447143555,
+    "processing_time": 6.714219331741333,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -860,7 +860,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.017331361770629883,
+    "processing_time": 8.318435192108154,
     "is_llm_specific": true,
     "validation_details": {
       "passed": true,
@@ -898,7 +898,7 @@
     "companies_found": 6,
     "confidence": 0.2524,
     "strategy": "intent_fallback",
-    "processing_time": 0.027120590209960938,
+    "processing_time": 7.038534641265869,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -933,7 +933,7 @@
     "companies_found": 20,
     "confidence": 0.26839999999999997,
     "strategy": "intent_fallback",
-    "processing_time": 0.015302181243896484,
+    "processing_time": 6.568778038024902,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -962,7 +962,7 @@
     "companies_found": 13,
     "confidence": 0.2552,
     "strategy": "intent_fallback",
-    "processing_time": 0.007892370223999023,
+    "processing_time": 7.0945494174957275,
     "is_llm_specific": true,
     "validation_details": {
       "keyword_validation": {
@@ -998,7 +998,7 @@
     "companies_found": 20,
     "confidence": 0.2704,
     "strategy": "intent_fallback",
-    "processing_time": 0.00706791877746582,
+    "processing_time": 6.394273281097412,
     "is_llm_specific": true,
     "validation_details": {
       "passed": true,
@@ -1036,7 +1036,7 @@
     "companies_found": 20,
     "confidence": 0.29000000000000004,
     "strategy": "intent_fallback",
-    "processing_time": 0.013278961181640625,
+    "processing_time": 6.438605785369873,
     "is_llm_specific": true,
     "validation_details": {
       "passed": true,
