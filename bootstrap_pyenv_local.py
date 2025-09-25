@@ -4,15 +4,14 @@
 """
 bootstrap_pyenv_local.py
 
-Create a local venv, (optionally) install deps, (optionally) fetch a Qwen2.5 14B Instruct GGUF model,
-and provide handy 'create' / 'run' / 'pip' / 'doctor' / 'clean' commands.
+Create a local venv, install deps (including llama-cpp-python by default), optionally fetch a
+Qwen2.5 14B Instruct GGUF model, and provide handy 'create' / 'run' / 'pip' / 'doctor' / 'clean' commands.
 
 Examples
 --------
 python bootstrap_pyenv_local.py clean
 python bootstrap_pyenv_local.py create
 python bootstrap_pyenv_local.py create --skip-model
-python bootstrap_pyenv_local.py create --install-llama "llama-cpp-python==3.1.0"
 python bootstrap_pyenv_local.py create --model-url https://example/my.gguf
 python bootstrap_pyenv_local.py create --model-file D:\downloads\my.gguf
 python bootstrap_pyenv_local.py pip install -r requirements.txt
@@ -25,8 +24,10 @@ python bootstrap_pyenv_local.py run -- .\test_pyenv_integrated_query_summary.py 
 
 Notes
 -----
-- No Hugging Face token is used anywhere (public downloads only).
+- No Hugging Face token is used (public downloads only).
 - If model fetch fails, we WARN and continue (unless --strict-model).
+- llama-cpp-python is installed by default. To override the spec, set env LLAMA_CPP_SPEC
+  (e.g., path to a wheel) or place a wheel under ./wheels or ./vendor.
 """
 
 from __future__ import annotations
@@ -46,7 +47,7 @@ DEFAULT_VENV_DIR = Path(".venv")
 DEFAULT_MODELS_DIR = Path("models")
 DEFAULT_MODEL_QUANT = "Q4_K_M"  # change with --quant
 
-# Base packages (NO llama-cpp here; you install it yourself unless --install-llama is passed)
+# Base packages (llama-cpp-python handled separately below)
 BASE_PKGS = [
     "huggingface_hub>=0.23.0",
     "requests>=2.31.0",
@@ -118,7 +119,6 @@ def pip_install_spec(pip_exe: Path, spec: str) -> None:
         _p("OK", f"Installed: {spec}")
 
 def verify_llama_import(python_exe: Path) -> None:
-    # Only used if you installed llama yourself or via --install-llama
     _p("RUN", f'"{python_exe}" -c "import llama_cpp,sys;print(\'llama_cpp OK, py=\',sys.version)"')
     subprocess.run([str(python_exe), "-c",
                    "import llama_cpp,sys;print('llama_cpp OK, py=',sys.version)"],
@@ -369,6 +369,88 @@ def ensure_model(
 
     return False
 
+# ---------------- llama-cpp install (default ON) ----------------
+
+def _find_local_llama_wheel(search_roots: List[Path]) -> Optional[Path]:
+    """
+    Look for a prebuilt llama-cpp-python wheel in common folders (Windows-friendly).
+    """
+    patterns = [
+        "llama_cpp_python-*.whl",
+        "llama-cpp-python-*.whl",
+    ]
+    for root in search_roots:
+        if not root or not root.exists():
+            continue
+        for pat in patterns:
+            # prefer the latest by name sort descending
+            matches = sorted(root.glob(pat), reverse=True)
+            if matches:
+                return matches[0]
+    return None
+
+def install_llama_default(pip_exe: Path, python_exe: Path, strict: bool = False) -> bool:
+    """
+    Install llama-cpp-python by default using this priority:
+      1) LLAMA_CPP_SPEC env var (pip spec or absolute wheel path)
+      2) local wheel under ./wheels or ./vendor or repo root
+      3) requirements.txt (repo root)
+      4) pip install llama-cpp-python (no pin)
+    Returns True if import succeeds, False otherwise (unless strict → raises).
+    """
+    repo = repo_root()
+    env_spec = os.getenv("LLAMA_CPP_SPEC", "").strip()
+
+    # 1) explicit env spec (wheel or pip spec)
+    try:
+        if env_spec:
+            _p("INFO", f"LLAMA_CPP_SPEC set → installing: {env_spec}")
+            pip_install_spec(pip_exe, env_spec)
+            verify_llama_import(python_exe)
+            return True
+    except Exception as e:
+        _p("WARN", f"Env spec install/import failed: {e}")
+        if strict:
+            raise
+
+    # 2) local wheel
+    try:
+        wheel = _find_local_llama_wheel([repo / "wheels", repo / "vendor", repo])
+        if wheel:
+            _p("INFO", f"Found local llama-cpp-python wheel: {wheel.name}")
+            pip_install_spec(pip_exe, str(wheel))
+            verify_llama_import(python_exe)
+            return True
+    except Exception as e:
+        _p("WARN", f"Local wheel install/import failed: {e}")
+        if strict:
+            raise
+
+    # 3) requirements.txt
+    try:
+        req = repo / "requirements.txt"
+        if req.exists():
+            _p("INFO", "Installing from requirements.txt")
+            pip_install_spec(pip_exe, f"-r {req}")
+            verify_llama_import(python_exe)
+            return True
+    except Exception as e:
+        _p("WARN", f"requirements.txt install/import failed: {e}")
+        if strict:
+            raise
+
+    # 4) plain pip install
+    try:
+        _p("INFO", "Installing llama-cpp-python from PyPI (no version pin)")
+        pip_install_spec(pip_exe, "llama-cpp-python")
+        verify_llama_import(python_exe)
+        return True
+    except Exception as e:
+        _p("WARN", f"pip install llama-cpp-python failed or import failed: {e}")
+        if strict:
+            raise
+        return False
+
 # ---------------- Commands ----------------
 
 def cmd_create(args: argparse.Namespace) -> int:
@@ -376,7 +458,7 @@ def cmd_create(args: argparse.Namespace) -> int:
     pip_exe = venv_pip_path(venv_dir)
     python_exe = venv_python_path(venv_dir)
 
-    # Install base deps first (no llama-cpp)
+    # Install base deps first
     try:
         pip_install(pip_exe, BASE_PKGS)
     except subprocess.CalledProcessError as e:
@@ -387,17 +469,13 @@ def cmd_create(args: argparse.Namespace) -> int:
     if not inject_venv_site_packages(python_exe):
         _p("WARN", "Could not inject venv site-packages; huggingface downloads may not work.")
 
-    # Optional: install llama-cpp if you asked for it
-    if args.install_llama:
-        try:
-            pip_install_spec(pip_exe, args.install_llama)
-            try:
-                verify_llama_import(python_exe)
-            except subprocess.CalledProcessError:
-                _p("WARN", "llama_cpp import check failed; ensure your build is compatible.")
-        except subprocess.CalledProcessError as e:
-            _p("ERROR", f"llama-cpp install failed: {e}")
-            return 1
+    # Install llama-cpp-python by default (unless --no-llama)
+    if not args.no_llama:
+        ok = install_llama_default(pip_exe, python_exe, strict=args.strict_llama)
+        if not ok:
+            _p("WARN", "llama-cpp-python was not installed or import failed.")
+    else:
+        _p("INFO", "Skipping llama-cpp-python install (--no-llama).")
 
     # Model step
     models_dir = ensure_dir(Path(args.models_dir))
@@ -510,15 +588,15 @@ def _parse_args() -> argparse.Namespace:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     # create
-    pc = sub.add_parser("create", help="Create venv, install deps, optionally download/merge Qwen model")
+    pc = sub.add_parser("create", help="Create venv, install deps, install llama-cpp-python, optionally fetch model")
     pc.add_argument("--quant", default=DEFAULT_MODEL_QUANT, help="Quantization (default: Q4_K_M)")
     pc.add_argument("--models-dir", default=str(DEFAULT_MODELS_DIR), help="Models directory (default: models)")
     pc.add_argument("--skip-model", action="store_true", help="Do not download a model")
     pc.add_argument("--model-url", default=None, help="Direct URL to a single-file GGUF to download")
     pc.add_argument("--model-file", default=None, help="Path to a local single-file GGUF to copy")
     pc.add_argument("--strict-model", action="store_true", help="Fail if the model cannot be obtained")
-    pc.add_argument("--install-llama", default=None,
-                   help="Optional pip spec to install llama-cpp-python your way (e.g. 'llama-cpp-python==3.1.0')")
+    pc.add_argument("--no-llama", action="store_true", help="Skip llama-cpp-python install (default: install)")
+    pc.add_argument("--strict-llama", action="store_true", help="Fail if llama-cpp-python install/import fails")
     pc.set_defaults(func=cmd_create)
 
     # run

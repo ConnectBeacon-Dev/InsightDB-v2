@@ -48,6 +48,10 @@ python bootstrap_pyenv_local.py run -- .\test_pyen_integrated_query_summary.py -
 - python bootstrap_pyenv_local.py run -- .\test_pyenv_integrated_query_summary.py
 - python bootstrap_pyenv_local.py run -- .\test_pyenv_integrated_query_summary.py --query "location of Company_003"
 
+### Additional Package installation
+- python bootstrap_pyenv_local.py pip -- install  flask
+- python bootstrap_pyenv_local.py pip -- install  flask_cors
+
 ### Comprehensive test
 - python bootstrap_pyenv_local.py run -- -m comprehensive_test.test_comprehensive_search_validation
-- python bootstrap_pyenv_local.py run -- .\run_pyenv_pipeline.py
+- python bootstrap_pyenv_local.py run -- .\test_company_100_def.py
