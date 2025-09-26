@@ -213,7 +213,7 @@ class IntegratedSearchFileCreator:
         """CompanyDetails section (base)."""
         company_id = row.get('Id')
         details: Dict[str, Any] = {
-            'company_ref_no': f"CMP{str(company_id).zfill(3)}" if pd.notna(company_id) else "",
+            'company_ref_no': str(row.get('CompanyRefNo', '') or ''),
             'company_id': int(company_id) if str(company_id).isdigit() else 0,
             'company_name': str(row.get('CompanyName', '') or ''),
             'cin_number': str(row.get('CINNumber', '') or ''),
@@ -505,7 +505,7 @@ class IntegratedSearchFileCreator:
             logger.error(f"Failed to create company record for ID {row.get('Id', 'unknown')}: {e}")
             return {
                 "CompanyDetails": {
-                    "company_ref_no": f"CMP{str(row.get('Id', '000')).zfill(3)}",
+                    "company_ref_no": str(row.get('CompanyRefNo', '') or ''),
                     "company_id": int(row.get('Id', 0)) if str(row.get('Id', '0')).isdigit() else 0,
                     "company_name": str(row.get('CompanyName', 'Unknown'))
                 },

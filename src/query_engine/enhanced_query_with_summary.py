@@ -1290,12 +1290,16 @@ def main():
 
     logger.info("Enhanced Query Execution - Single File (TF-IDF + Embeddings + RRF)")
     for q in _demo_queries():
-        out = execute_enhanced_query_with_summary(q, config=config, logger=logger, topk=args.topk)
+        # Use the processor directly to get full metadata
+        proc = EnhancedQueryProcessor(config, logger)
+        result = proc.process_query(q, topk=args.topk)
+        
         logger.info(f"Query: {q}")
-        logger.info(f"  Strategy={out['strategy']} conf={out['confidence']:.2f} time={out['processing_time']:.3f}s")
-        logger.info(f"  Summary: {out['enhanced_summary']}")
-        logger.info(f"  Intent answer:\n{out['intent_answer']}")
-        logger.info(f"  Companies: {len(out['results']['companies'])}")
+        logger.info(f"  Strategy={result.metadata.strategy} conf={result.metadata.confidence:.2f} time={result.metadata.processing_time:.3f}s")
+        logger.info(f"  Summary: {result.enhanced_summary}")
+        if result.intent_info:
+            logger.info(f"  Intent answer:\n{result.intent_info.get('answer', 'N/A')}")
+        logger.info(f"  Companies: {len(result.companies)}")
         logger.info("-"*60)
 
 if __name__ == "__main__":

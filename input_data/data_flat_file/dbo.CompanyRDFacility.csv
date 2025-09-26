@@ -1,3 +1,3 @@
 ﻿Id,CompanyMaster_FK_ID,CompanyRefNo,RDRefNo,RDCategory_Fk_ID,RDSubCategory_Fk_Id,RD_Details,IsNabIAccredited,IsActive,Final_Submit,CreatedBy,CreatedDate,CreatedIP,UpdatedBy,UpdateDate,UpdatedIP
-1,1,PE001,RD001,1,1,High voltage transformer R&D facility,True,True,True,admin,2025-08-03T13:55:50.290000,127.0.0.1,admin,2025-08-03T13:55:50.290000,127.0.0.1
-2,2,PE002,RD002,2,2,Material fatigue testing lab,True,True,True,admin,2025-08-03T13:55:50.290000,127.0.0.1,admin,2025-08-03T13:55:50.290000,127.0.0.1
+1,1,CMP001,RD001,1,1,High voltage transformer R&D facility,True,True,True,admin,2025-08-03T13:55:50.290000,127.0.0.1,admin,2025-08-03T13:55:50.290000,127.0.0.1
+2,2,CMP002,RD002,2,2,Material fatigue testing lab,True,True,True,admin,2025-08-03T13:55:50.290000,127.0.0.1,admin,2025-08-03T13:55:50.290000,127.0.0.1

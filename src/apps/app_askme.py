@@ -71,7 +71,7 @@ _HELP_TEXT = (
     "• \"ISO 9001 certified companies in India\"\n"
     "• \"Aerospace domain vendors with R&D in electrical\"\n"
     "• \"List companies having products in defence sector\"\n"
-    "• \"Companies by URN = CMP00032\"\n\n"
+    "• \"Companies by URN = PE00032\"\n\n"
     "I'll fetch matching rows and summarize them for you."
 )
 

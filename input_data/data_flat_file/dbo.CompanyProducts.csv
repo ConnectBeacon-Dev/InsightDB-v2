@@ -1,2 +1,2 @@
 ﻿Id,CompanyMaster_FK_Id,CompanyRefNo,ProductRefNo,ProductName,ProductDesc,NSNNumber,HSNCode,FutureExpansion,SIUnit_Fk_Id,AnnualProductionCapacity,ProductImage,ProductCertificateDet,ProductType_Fk_Id,DefencePlatform_Fk_Id,PTAType_Fk_Id,SalientFeature,ItemExported,Final_Submit,IsActive,CreatedBy,CreatedDate,CreatedIP,UpdatedBy,UpdatedDate,UpdatedIP
-1,1,PE001,PRD001,High Voltage Transformer,Substation voltage regulation,,,,,,,,1,,,,True,True,True,10,2025-08-03T13:55:43.463000,127.0.0.1,,,
+1,1,CMP001,PRD001,High Voltage Transformer,Substation voltage regulation,,,,,,,,1,,,,True,True,True,10,2025-08-03T13:55:43.463000,127.0.0.1,,,
