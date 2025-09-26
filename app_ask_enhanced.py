@@ -122,25 +122,33 @@ def summarize_markdown(result: Dict[str, Any]) -> str:
     if companies:
         rows = []
         for c in companies[:5]:
-            rows.append(f"| {c.get('company_name','-')} | {c.get('city','') or ''} | "
-                        f"{c.get('state','') or ''} | {c.get('country','') or ''} |")
+            # Show only essential fields: Company Name, Ref No, Website, Email, Phone
+            website = c.get('website', '') or ''
+            email = c.get('email', '') or ''
+            phone = c.get('phone', '') or ''
+            rows.append(f"| {c.get('company_name','-')} | {c.get('company_ref_no','-')} | "
+                        f"{website} | {email} | {phone} |")
         if rows:
-            parts.append("\n**Top matches**\n\n| Company | City | State | Country |\n|---|---|---|---|\n" + "\n".join(rows))
+            parts.append("\n**Top matches**\n\n| Company | Ref No | Website | Email | Phone |\n|---|---|---|---|---|\n" + "\n".join(rows))
     return sanitize("\n\n".join([p for p in parts if p])) or "No matching companies found."
 
 def trim_rows_for_ui(result: Dict[str, Any], max_rows: int = MAX_ROWS_PAYLOAD) -> List[Dict[str, Any]]:
     companies = result.get("companies") or []
     view = []
     for c in companies[:max_rows]:
-        view.append({
-            "CompanyRefNo": c.get("company_ref_no"),
+        # Only include essential fields: Company Name, Ref No, Website, Email, Phone
+        row = {
             "CompanyName": c.get("company_name"),
-            "City": c.get("city"),
-            "State": c.get("state"),
-            "Country": c.get("country"),
-            "Certifications": ", ".join(c.get("certifications") or [])[:200],
-            "Website": c.get("website") or "",
-        })
+            "CompanyRefNo": c.get("company_ref_no"),
+        }
+        # Add contact fields only if they have values
+        if c.get("website"):
+            row["Website"] = c.get("website")
+        if c.get("email"):
+            row["Email"] = c.get("email")
+        if c.get("phone"):
+            row["Phone"] = c.get("phone")
+        view.append(row)
     return view
 
 # ------------------------------ Flask app -----------------------------------

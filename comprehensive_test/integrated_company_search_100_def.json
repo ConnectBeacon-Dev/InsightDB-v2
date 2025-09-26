@@ -14,7 +14,7 @@
   "companies": [
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP001",
+        "company_ref_no": "URN_NO_001",
         "company_id": 1,
         "company_name": "Vayu Metals",
         "cin_number": "CIN00001",
@@ -95,7 +95,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP002",
+        "company_ref_no": "URN_NO_002",
         "company_id": 2,
         "company_name": "Cochin Shipyard Limited",
         "cin_number": "CIN00002",
@@ -206,7 +206,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP003",
+        "company_ref_no": "URN_NO_003",
         "company_id": 3,
         "company_name": "Vector Avionics",
         "cin_number": "CIN00003",
@@ -289,7 +289,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP004",
+        "company_ref_no": "URN_NO_004",
         "company_id": 4,
         "company_name": "Agnikul Mechatronics",
         "cin_number": "CIN00004",
@@ -363,7 +363,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP005",
+        "company_ref_no": "URN_NO_005",
         "company_id": 5,
         "company_name": "Alpha Design Technologies",
         "cin_number": "CIN00005",
@@ -481,7 +481,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP006",
+        "company_ref_no": "URN_NO_006",
         "company_id": 6,
         "company_name": "Garuda Defence Systems",
         "cin_number": "CIN00006",
@@ -584,7 +584,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP007",
+        "company_ref_no": "URN_NO_007",
         "company_id": 7,
         "company_name": "Agni NavCom",
         "cin_number": "CIN00007",
@@ -681,7 +681,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP008",
+        "company_ref_no": "URN_NO_008",
         "company_id": 8,
         "company_name": "Mahindra Defence Systems",
         "cin_number": "CIN00008",
@@ -771,7 +771,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP009",
+        "company_ref_no": "URN_NO_009",
         "company_id": 9,
         "company_name": "Goa Shipyard Limited",
         "cin_number": "CIN00009",
@@ -854,7 +854,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP010",
+        "company_ref_no": "URN_NO_010",
         "company_id": 10,
         "company_name": "Pragati Metals",
         "cin_number": "CIN00010",
@@ -971,7 +971,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP011",
+        "company_ref_no": "URN_NO_011",
         "company_id": 11,
         "company_name": "Agnikul Robotics",
         "cin_number": "CIN00011",
@@ -1067,7 +1067,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP012",
+        "company_ref_no": "URN_NO_012",
         "company_id": 12,
         "company_name": "Vector Mechatronics",
         "cin_number": "CIN00012",
@@ -1163,7 +1163,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP013",
+        "company_ref_no": "URN_NO_013",
         "company_id": 13,
         "company_name": "Solar Industries India (Defence)",
         "cin_number": "CIN00013",
@@ -1260,7 +1260,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP014",
+        "company_ref_no": "URN_NO_014",
         "company_id": 14,
         "company_name": "Bharat Forge (Defence)",
         "cin_number": "CIN00014",
@@ -1343,7 +1343,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP015",
+        "company_ref_no": "URN_NO_015",
         "company_id": 15,
         "company_name": "Garuda EW Systems",
         "cin_number": "CIN00015",
@@ -1438,7 +1438,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP016",
+        "company_ref_no": "URN_NO_016",
         "company_id": 16,
         "company_name": "ideaForge Technology",
         "cin_number": "CIN00016",
@@ -1548,7 +1548,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP017",
+        "company_ref_no": "URN_NO_017",
         "company_id": 17,
         "company_name": "Astra Mechatronics",
         "cin_number": "CIN00017",
@@ -1628,7 +1628,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP018",
+        "company_ref_no": "URN_NO_018",
         "company_id": 18,
         "company_name": "Surya EW Systems",
         "cin_number": "CIN00018",
@@ -1717,7 +1717,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP019",
+        "company_ref_no": "URN_NO_019",
         "company_id": 19,
         "company_name": "BEL Optronic Devices",
         "cin_number": "CIN00019",
@@ -1841,7 +1841,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP020",
+        "company_ref_no": "URN_NO_020",
         "company_id": 20,
         "company_name": "Ananth Technologies",
         "cin_number": "CIN00020",
@@ -1965,7 +1965,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP021",
+        "company_ref_no": "URN_NO_021",
         "company_id": 21,
         "company_name": "Avantel Limited",
         "cin_number": "CIN00021",
@@ -2048,7 +2048,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP022",
+        "company_ref_no": "URN_NO_022",
         "company_id": 22,
         "company_name": "Aero Composites",
         "cin_number": "CIN00022",
@@ -2151,7 +2151,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP023",
+        "company_ref_no": "URN_NO_023",
         "company_id": 23,
         "company_name": "Astra Microsystems",
         "cin_number": "CIN00023",
@@ -2269,7 +2269,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP024",
+        "company_ref_no": "URN_NO_024",
         "company_id": 24,
         "company_name": "Aero Mechatronics",
         "cin_number": "CIN00024",
@@ -2352,7 +2352,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP025",
+        "company_ref_no": "URN_NO_025",
         "company_id": 25,
         "company_name": "Suryansh Composites",
         "cin_number": "CIN00025",
@@ -2476,7 +2476,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP026",
+        "company_ref_no": "URN_NO_026",
         "company_id": 26,
         "company_name": "Sudarshan RadarWorks",
         "cin_number": "CIN00026",
@@ -2593,7 +2593,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP027",
+        "company_ref_no": "URN_NO_027",
         "company_id": 27,
         "company_name": "Paras Defence and Space Technologies",
         "cin_number": "CIN00027",
@@ -2682,7 +2682,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP028",
+        "company_ref_no": "URN_NO_028",
         "company_id": 28,
         "company_name": "Sudarshan EW Systems",
         "cin_number": "CIN00028",
@@ -2756,7 +2756,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP029",
+        "company_ref_no": "URN_NO_029",
         "company_id": 29,
         "company_name": "Kritika Metals",
         "cin_number": "CIN00029",
@@ -2845,7 +2845,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP030",
+        "company_ref_no": "URN_NO_030",
         "company_id": 30,
         "company_name": "Zenith Microsystems",
         "cin_number": "CIN00030",
@@ -2928,7 +2928,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP031",
+        "company_ref_no": "URN_NO_031",
         "company_id": 31,
         "company_name": "Suryansh Metals",
         "cin_number": "CIN00031",
@@ -3039,7 +3039,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP032",
+        "company_ref_no": "URN_NO_032",
         "company_id": 32,
         "company_name": "Astra Microwave Products",
         "cin_number": "CIN00032",
@@ -3136,7 +3136,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP033",
+        "company_ref_no": "URN_NO_033",
         "company_id": 33,
         "company_name": "Taneja Aerospace and Aviation",
         "cin_number": "CIN00033",
@@ -3254,7 +3254,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP034",
+        "company_ref_no": "URN_NO_034",
         "company_id": 34,
         "company_name": "Agnikul AeroTech",
         "cin_number": "CIN00034",
@@ -3335,7 +3335,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP035",
+        "company_ref_no": "URN_NO_035",
         "company_id": 35,
         "company_name": "Surya Robotics",
         "cin_number": "CIN00035",
@@ -3431,7 +3431,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP036",
+        "company_ref_no": "URN_NO_036",
         "company_id": 36,
         "company_name": "Shakti Avionics",
         "cin_number": "CIN00036",
@@ -3539,7 +3539,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP037",
+        "company_ref_no": "URN_NO_037",
         "company_id": 37,
         "company_name": "Tejas EW Systems",
         "cin_number": "CIN00037",
@@ -3629,7 +3629,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP038",
+        "company_ref_no": "URN_NO_038",
         "company_id": 38,
         "company_name": "Shakti AeroTech",
         "cin_number": "CIN00038",
@@ -3718,7 +3718,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP039",
+        "company_ref_no": "URN_NO_039",
         "company_id": 39,
         "company_name": "Surya Power",
         "cin_number": "CIN00039",
@@ -3815,7 +3815,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP040",
+        "company_ref_no": "URN_NO_040",
         "company_id": 40,
         "company_name": "Pragati Optics",
         "cin_number": "CIN00040",
@@ -3898,7 +3898,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP041",
+        "company_ref_no": "URN_NO_041",
         "company_id": 41,
         "company_name": "Centum Electronics",
         "cin_number": "CIN00041",
@@ -3981,7 +3981,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP042",
+        "company_ref_no": "URN_NO_042",
         "company_id": 42,
         "company_name": "Garuda AeroTech",
         "cin_number": "CIN00042",
@@ -4098,7 +4098,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP043",
+        "company_ref_no": "URN_NO_043",
         "company_id": 43,
         "company_name": "Sudarshan Optics",
         "cin_number": "CIN00043",
@@ -4187,7 +4187,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP044",
+        "company_ref_no": "URN_NO_044",
         "company_id": 44,
         "company_name": "Kalyani Strategic Systems",
         "cin_number": "CIN00044",
@@ -4296,7 +4296,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP045",
+        "company_ref_no": "URN_NO_045",
         "company_id": 45,
         "company_name": "Bharat Avionics",
         "cin_number": "CIN00045",
@@ -4386,7 +4386,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP046",
+        "company_ref_no": "URN_NO_046",
         "company_id": 46,
         "company_name": "Tejas RadarWorks",
         "cin_number": "CIN00046",
@@ -4466,7 +4466,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP047",
+        "company_ref_no": "URN_NO_047",
         "company_id": 47,
         "company_name": "Vayu Power",
         "cin_number": "CIN00047",
@@ -4554,7 +4554,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP048",
+        "company_ref_no": "URN_NO_048",
         "company_id": 48,
         "company_name": "Indra Mechatronics",
         "cin_number": "CIN00048",
@@ -4651,7 +4651,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP049",
+        "company_ref_no": "URN_NO_049",
         "company_id": 49,
         "company_name": "Akriti Composites",
         "cin_number": "CIN00049",
@@ -4740,7 +4740,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP050",
+        "company_ref_no": "URN_NO_050",
         "company_id": 50,
         "company_name": "Vector Defence Systems",
         "cin_number": "CIN00050",
@@ -4821,7 +4821,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP051",
+        "company_ref_no": "URN_NO_051",
         "company_id": 51,
         "company_name": "NexGen Metals",
         "cin_number": "CIN00051",
@@ -4911,7 +4911,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP052",
+        "company_ref_no": "URN_NO_052",
         "company_id": 52,
         "company_name": "Mazagon Dock Shipbuilders",
         "cin_number": "CIN00052",
@@ -5000,7 +5000,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP053",
+        "company_ref_no": "URN_NO_053",
         "company_id": 53,
         "company_name": "Nirbhay EW Systems",
         "cin_number": "CIN00053",
@@ -5083,7 +5083,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP054",
+        "company_ref_no": "URN_NO_054",
         "company_id": 54,
         "company_name": "Suryansh Microsystems",
         "cin_number": "CIN00054",
@@ -5179,7 +5179,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP055",
+        "company_ref_no": "URN_NO_055",
         "company_id": 55,
         "company_name": "Garden Reach Shipbuilders & Engineers",
         "cin_number": "CIN00055",
@@ -5289,7 +5289,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP056",
+        "company_ref_no": "URN_NO_056",
         "company_id": 56,
         "company_name": "Hindustan Aeronautics Limited",
         "cin_number": "CIN00056",
@@ -5372,7 +5372,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP057",
+        "company_ref_no": "URN_NO_057",
         "company_id": 57,
         "company_name": "Bharat Dynamics",
         "cin_number": "CIN00057",
@@ -5483,7 +5483,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP058",
+        "company_ref_no": "URN_NO_058",
         "company_id": 58,
         "company_name": "Aero Dynamics",
         "cin_number": "CIN00058",
@@ -5573,7 +5573,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP059",
+        "company_ref_no": "URN_NO_059",
         "company_id": 59,
         "company_name": "Agnikul NavCom",
         "cin_number": "CIN00059",
@@ -5656,7 +5656,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP060",
+        "company_ref_no": "URN_NO_060",
         "company_id": 60,
         "company_name": "Indra Aerospace",
         "cin_number": "CIN00060",
@@ -5745,7 +5745,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP061",
+        "company_ref_no": "URN_NO_061",
         "company_id": 61,
         "company_name": "Nirbhay Dynamics",
         "cin_number": "CIN00061",
@@ -5828,7 +5828,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP062",
+        "company_ref_no": "URN_NO_062",
         "company_id": 62,
         "company_name": "Bharat Electronics Limited",
         "cin_number": "CIN00062",
@@ -5936,7 +5936,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP063",
+        "company_ref_no": "URN_NO_063",
         "company_id": 63,
         "company_name": "Kritika Robotics",
         "cin_number": "CIN00063",
@@ -6026,7 +6026,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP064",
+        "company_ref_no": "URN_NO_064",
         "company_id": 64,
         "company_name": "Agni Electronics",
         "cin_number": "CIN00064",
@@ -6116,7 +6116,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP065",
+        "company_ref_no": "URN_NO_065",
         "company_id": 65,
         "company_name": "NewSpace India Limited",
         "cin_number": "CIN00065",
@@ -6213,7 +6213,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP066",
+        "company_ref_no": "URN_NO_066",
         "company_id": 66,
         "company_name": "Garuda Dynamics",
         "cin_number": "CIN00066",
@@ -6302,7 +6302,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP067",
+        "company_ref_no": "URN_NO_067",
         "company_id": 67,
         "company_name": "Walchandnagar Industries",
         "cin_number": "CIN00067",
@@ -6385,7 +6385,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP068",
+        "company_ref_no": "URN_NO_068",
         "company_id": 68,
         "company_name": "Nirbhay AeroTech",
         "cin_number": "CIN00068",
@@ -6474,7 +6474,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP069",
+        "company_ref_no": "URN_NO_069",
         "company_id": 69,
         "company_name": "Akriti Electronics",
         "cin_number": "CIN00069",
@@ -6564,7 +6564,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP070",
+        "company_ref_no": "URN_NO_070",
         "company_id": 70,
         "company_name": "Aero Optics",
         "cin_number": "CIN00070",
@@ -6668,7 +6668,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP071",
+        "company_ref_no": "URN_NO_071",
         "company_id": 71,
         "company_name": "Suryansh Avionics",
         "cin_number": "CIN00071",
@@ -6770,7 +6770,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP072",
+        "company_ref_no": "URN_NO_072",
         "company_id": 72,
         "company_name": "Garuda Aerospace",
         "cin_number": "CIN00072",
@@ -6853,7 +6853,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP073",
+        "company_ref_no": "URN_NO_073",
         "company_id": 73,
         "company_name": "Vector Electronics",
         "cin_number": "CIN00073",
@@ -6949,7 +6949,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP074",
+        "company_ref_no": "URN_NO_074",
         "company_id": 74,
         "company_name": "Dynamatic Technologies (Aerospace)",
         "cin_number": "CIN00074",
@@ -7067,7 +7067,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP075",
+        "company_ref_no": "URN_NO_075",
         "company_id": 75,
         "company_name": "Suryansh Aerospace",
         "cin_number": "CIN00075",
@@ -7156,7 +7156,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP076",
+        "company_ref_no": "URN_NO_076",
         "company_id": 76,
         "company_name": "BrahMos Aerospace (JV)",
         "cin_number": "CIN00076",
@@ -7230,7 +7230,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP077",
+        "company_ref_no": "URN_NO_077",
         "company_id": 77,
         "company_name": "Pragati EW Systems",
         "cin_number": "CIN00077",
@@ -7341,7 +7341,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP078",
+        "company_ref_no": "URN_NO_078",
         "company_id": 78,
         "company_name": "Zenith Dynamics",
         "cin_number": "CIN00078",
@@ -7456,7 +7456,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP079",
+        "company_ref_no": "URN_NO_079",
         "company_id": 79,
         "company_name": "Vayu EW Systems",
         "cin_number": "CIN00079",
@@ -7573,7 +7573,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP080",
+        "company_ref_no": "URN_NO_080",
         "company_id": 80,
         "company_name": "SFO Technologies (NeST)",
         "cin_number": "CIN00080",
@@ -7654,7 +7654,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP081",
+        "company_ref_no": "URN_NO_081",
         "company_id": 81,
         "company_name": "Tejas Aerospace",
         "cin_number": "CIN00081",
@@ -7764,7 +7764,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP082",
+        "company_ref_no": "URN_NO_082",
         "company_id": 82,
         "company_name": "Tejas Avionics",
         "cin_number": "CIN00082",
@@ -7847,7 +7847,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP083",
+        "company_ref_no": "URN_NO_083",
         "company_id": 83,
         "company_name": "NexGen AeroTech",
         "cin_number": "CIN00083",
@@ -7951,7 +7951,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP084",
+        "company_ref_no": "URN_NO_084",
         "company_id": 84,
         "company_name": "MTAR Technologies",
         "cin_number": "CIN00084",
@@ -8041,7 +8041,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP085",
+        "company_ref_no": "URN_NO_085",
         "company_id": 85,
         "company_name": "Surya Controls",
         "cin_number": "CIN00085",
@@ -8159,7 +8159,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP086",
+        "company_ref_no": "URN_NO_086",
         "company_id": 86,
         "company_name": "Tata Advanced Systems",
         "cin_number": "CIN00086",
@@ -8277,7 +8277,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP087",
+        "company_ref_no": "URN_NO_087",
         "company_id": 87,
         "company_name": "Agni Power",
         "cin_number": "CIN00087",
@@ -8381,7 +8381,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP088",
+        "company_ref_no": "URN_NO_088",
         "company_id": 88,
         "company_name": "Sudarshan NavCom",
         "cin_number": "CIN00088",
@@ -8477,7 +8477,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP089",
+        "company_ref_no": "URN_NO_089",
         "company_id": 89,
         "company_name": "Data Patterns (India)",
         "cin_number": "CIN00089",
@@ -8560,7 +8560,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP090",
+        "company_ref_no": "URN_NO_090",
         "company_id": 90,
         "company_name": "Nirbhay Optics",
         "cin_number": "CIN00090",
@@ -8671,7 +8671,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP091",
+        "company_ref_no": "URN_NO_091",
         "company_id": 91,
         "company_name": "Shakti Microsystems",
         "cin_number": "CIN00091",
@@ -8782,7 +8782,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP092",
+        "company_ref_no": "URN_NO_092",
         "company_id": 92,
         "company_name": "Larsen & Toubro Defence",
         "cin_number": "CIN00092",
@@ -8879,7 +8879,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP093",
+        "company_ref_no": "URN_NO_093",
         "company_id": 93,
         "company_name": "Vayu Defence Systems",
         "cin_number": "CIN00093",
@@ -8968,7 +8968,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP094",
+        "company_ref_no": "URN_NO_094",
         "company_id": 94,
         "company_name": "Shakti EW Systems",
         "cin_number": "CIN00094",
@@ -9042,7 +9042,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP095",
+        "company_ref_no": "URN_NO_095",
         "company_id": 95,
         "company_name": "Agni Composites",
         "cin_number": "CIN00095",
@@ -9131,7 +9131,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP096",
+        "company_ref_no": "URN_NO_096",
         "company_id": 96,
         "company_name": "Godrej Aerospace",
         "cin_number": "CIN00096",
@@ -9240,7 +9240,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP097",
+        "company_ref_no": "URN_NO_097",
         "company_id": 97,
         "company_name": "Bharat Dynamics Limited",
         "cin_number": "CIN00097",
@@ -9337,7 +9337,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP098",
+        "company_ref_no": "URN_NO_098",
         "company_id": 98,
         "company_name": "Sudarshan Power",
         "cin_number": "CIN00098",
@@ -9426,7 +9426,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP099",
+        "company_ref_no": "URN_NO_099",
         "company_id": 99,
         "company_name": "Indra Dynamics",
         "cin_number": "CIN00099",
@@ -9516,7 +9516,7 @@
     },
     {
       "CompanyDetails": {
-        "company_ref_no": "CMP100",
+        "company_ref_no": "URN_NO_100",
         "company_id": 100,
         "company_name": "Garuda RadarWorks",
         "cin_number": "CIN00100",

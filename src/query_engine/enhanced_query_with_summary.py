@@ -130,28 +130,63 @@ class Company:
     certifications: List[str] = field(default_factory=list)
     rd_categories: List[str] = field(default_factory=list)
     testing_categories: List[str] = field(default_factory=list)
+    products: List[str] = field(default_factory=list)  # Product list
     # Ranking
     score: float = 0.0
     category: str = ""
     status: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "company_ref_no": self.ref_no,
+    def to_dict(self, include_location: bool = False, include_domain: bool = False, include_certifications: bool = False, include_products: bool = False) -> Dict[str, Any]:
+        # Build result dict with essential company information
+        result = {
             "company_name": self.name,
-            "domain": self.domain,
-            "industry_domain": self.industry_domain,
-            "address": self.address,
-            "pincode": self.pincode,
-            "city": self.city,
-            "state": self.state,
-            "country": self.country,
-            "certifications": self.certifications,
-            "rd_categories": self.rd_categories,
-            "testing_categories": self.testing_categories,
-            "score": self.score,
-            **self.contact_info.to_dict(),
+            "company_ref_no": self.ref_no,
         }
+        
+        # Add contact info only if fields have values
+        contact_dict = self.contact_info.to_dict()
+        
+        # Only include website, email, and phone if they have values
+        if contact_dict.get("website") and str(contact_dict["website"]).strip():
+            result["website"] = contact_dict["website"]
+        if contact_dict.get("email") and str(contact_dict["email"]).strip():
+            result["email"] = contact_dict["email"]
+        if contact_dict.get("phone") and str(contact_dict["phone"]).strip():
+            result["phone"] = contact_dict["phone"]
+        
+        # Add location information if requested
+        if include_location:
+            location_parts = []
+            if self.address and str(self.address).strip():
+                location_parts.append(str(self.address).strip())
+            if self.city and str(self.city).strip():
+                location_parts.append(str(self.city).strip())
+            if self.state and str(self.state).strip():
+                location_parts.append(str(self.state).strip())
+            if self.country and str(self.country).strip():
+                location_parts.append(str(self.country).strip())
+            if self.pincode and str(self.pincode).strip():
+                location_parts.append(str(self.pincode).strip())
+            
+            if location_parts:
+                result["location"] = ", ".join(location_parts)
+        
+        # Add domain information if requested
+        if include_domain:
+            if self.domain and str(self.domain).strip():
+                result["domain"] = str(self.domain).strip()
+            if self.industry_domain and str(self.industry_domain).strip():
+                result["industry_domain"] = str(self.industry_domain).strip()
+        
+        # Add certifications if requested
+        if include_certifications and self.certifications:
+            result["certifications"] = self.certifications
+        
+        # Add products if requested
+        if include_products and self.products:
+            result["products"] = self.products
+                
+        return result
 
 
 @dataclass
@@ -421,6 +456,7 @@ class OptimizedSearchEngine:
         self.idx_dom: Dict[str, List[int]] = {}
         self.idx_cert: Dict[str, List[int]] = {}
         self.idx_kw: Dict[str, List[int]] = {}
+        self.idx_company_names: Dict[str, List[int]] = {}  # New: exact company name index
 
         # Cards (shared by embeddings/TF-IDF)
         self._card_cache: List[str] = []
@@ -444,9 +480,23 @@ class OptimizedSearchEngine:
         self.idx_dom = {}
         self.idx_cert = {}
         self.idx_kw = {}
+        self.idx_company_names = {}  # Initialize company name index
         for i, c in enumerate(self._companies):
             # Extract company details from nested structure
             company_details = c.get("CompanyDetails", {})
+            
+            # Company name indexing for exact matches
+            company_name = str(company_details.get("company_name", "")).strip()
+            if company_name and company_name.lower() != "nan":
+                # Index exact company name (case-insensitive)
+                name_key = company_name.lower()
+                self.idx_company_names.setdefault(name_key, []).append(i)
+                
+                # Also index individual words in company name for partial matches
+                name_words = company_name.lower().split()
+                for word in name_words:
+                    if len(word) > 2:  # Skip very short words
+                        self.idx_company_names.setdefault(word, []).append(i)
             
             # Location
             for f in ("country", "state", "city", "district"):
@@ -690,6 +740,52 @@ class OptimizedSearchEngine:
             hits.extend(self.idx_kw.get(t.strip().lower(), []))
         return list(dict.fromkeys(hits))
 
+    def search_by_company_name(self, query: str) -> List[int]:
+        """
+        Search for companies by exact name match or partial name match.
+        This is the first strategy to try for company name queries.
+        """
+        self.ensure_built()
+        query_lower = query.strip().lower()
+        
+        # Try exact match first
+        exact_matches = self.idx_company_names.get(query_lower, [])
+        if exact_matches:
+            self.logger.debug(f"[CompanyName] Found exact match for '{query}': {len(exact_matches)} companies")
+            return exact_matches
+        
+        # Try partial matches by searching individual words
+        query_words = query_lower.split()
+        if len(query_words) > 1:
+            # For multi-word queries, find companies that match all words
+            word_matches = []
+            for word in query_words:
+                if len(word) > 2:  # Skip very short words
+                    matches = self.idx_company_names.get(word, [])
+                    word_matches.append(set(matches))
+            
+            if word_matches:
+                # Find intersection of all word matches
+                common_matches = set.intersection(*word_matches) if len(word_matches) > 1 else word_matches[0]
+                if common_matches:
+                    result = list(common_matches)
+                    self.logger.debug(f"[CompanyName] Found partial matches for '{query}': {len(result)} companies")
+                    return result
+        
+        # Single word or no multi-word matches found
+        single_word_matches = []
+        for word in query_words:
+            if len(word) > 2:
+                single_word_matches.extend(self.idx_company_names.get(word, []))
+        
+        if single_word_matches:
+            result = list(dict.fromkeys(single_word_matches))  # Remove duplicates while preserving order
+            self.logger.debug(f"[CompanyName] Found single-word matches for '{query}': {len(result)} companies")
+            return result
+        
+        self.logger.debug(f"[CompanyName] No company name matches found for '{query}'")
+        return []
+
     def rerank_with_embeddings(self, query: str, candidates: List[int], topk: int = 20) -> List[int]:
         self.ensure_built()
         self._ensure_embeddings()
@@ -784,7 +880,7 @@ class ResultProcessor:
         if d.get("company_ref_no"): return str(d["company_ref_no"])
         name = d.get("company_name") or d.get("name") or f"Unknown_{idx+1}"
         m = re.search(r"Company_(\d+)", str(name))
-        if m: return f"CMP{m.group(1).zfill(3)}"
+        if m: return m.group(1).zfill(3)  # Return just the number without any prefix
         return f"UNK{idx+1:03d}"
 
     def from_integrated(self, d: Dict, idx: int) -> Company:
@@ -838,6 +934,14 @@ class ResultProcessor:
             if test_subcat and test_subcat != "nan" and test_subcat != test_cat:
                 test_list.append(test_subcat)
         
+        # Extract products
+        products = d.get("ProductsAndServices", {}).get("ProductList", [])
+        product_list = []
+        for product in products:
+            product_name = product.get("product_name", "")
+            if product_name and product_name != "nan":
+                product_list.append(product_name)
+        
         return Company(
             ref_no=ref_no,
             name=str(company_details.get("company_name","Unknown")),
@@ -852,6 +956,7 @@ class ResultProcessor:
             certifications=cert_list,
             rd_categories=rd_list,
             testing_categories=test_list,
+            products=product_list,
             score=1.0,  # Default score
         )
 
@@ -902,7 +1007,7 @@ class EnhancedQueryProcessor:
         else:
             self.logger.info("[LLM] Query enhancer not available (missing dependencies)")
 
-    def _intent_answer(self, companies: List[Company], intents: Tuple[str, ...], topk: int = 5) -> str:
+    def _intent_answer(self, companies: List[Company], intents: Tuple[str, ...], topk: int = None) -> str:
         if not companies:
             return "No matching companies found."
 
@@ -914,7 +1019,9 @@ class EnhancedQueryProcessor:
         # Intent-based display logic
         self.logger.debug(f"Intent answer - intents: {intents}, show_location: {show_location}, show_domain: {show_domain}")
 
-        for c in companies[:topk]:
+        # Show all companies if topk is None, otherwise limit to topk
+        companies_to_show = companies if topk is None else companies[:topk]
+        for c in companies_to_show:
             parts = [f"{c.name} [{c.ref_no}]"]
 
             if show_location:
@@ -933,11 +1040,15 @@ class EnhancedQueryProcessor:
                 if dom_bits:
                     parts.append("; ".join(dom_bits))
 
-            if c.contact_info.email or c.contact_info.website or c.contact_info.phone:
-                contact_bits = []
-                if c.contact_info.email:   contact_bits.append(f"Email: {c.contact_info.email}")
-                if c.contact_info.website: contact_bits.append(f"Website: {c.contact_info.website}")
-                if c.contact_info.phone:   contact_bits.append(f"Phone: {c.contact_info.phone}")
+            # Only show contact info if fields have actual values
+            contact_bits = []
+            if c.contact_info.email and c.contact_info.email.strip():
+                contact_bits.append(f"Email: {c.contact_info.email}")
+            if c.contact_info.website and c.contact_info.website.strip():
+                contact_bits.append(f"Website: {c.contact_info.website}")
+            if c.contact_info.phone and c.contact_info.phone.strip():
+                contact_bits.append(f"Phone: {c.contact_info.phone}")
+            if contact_bits:
                 parts.append(" | ".join(contact_bits))
 
             if "certifications" in intents and c.certifications:
@@ -958,7 +1069,7 @@ class EnhancedQueryProcessor:
         return f"{' & '.join(header)}:\n" + "\n".join(lines)
 
     # ---- Query flow ----
-    def process_query(self, user_query: str, topk: int = 20) -> QueryResult:
+    def process_query(self, user_query: str, topk: int = None) -> QueryResult:
         t0 = time.time()
         timings = {}
 
@@ -970,8 +1081,51 @@ class EnhancedQueryProcessor:
         intents = self.intent.detect(user_query)
         timings["intent_ms"] = (time.time() - t1) * 1000
 
-        # 2) prefilter
+        # 2) Company name search strategy (first priority)
         t2 = time.time()
+        company_name_hits = self.engine.search_by_company_name(user_query)
+        
+        # Check if company name search found meaningful results
+        # Only use company name results if we found a reasonable number of matches
+        # For very generic queries that happen to match company name words, fall back to general search
+        use_company_name_results = False
+        if company_name_hits:
+            # Use company name results if:
+            # 1. We found a small number of highly relevant matches (likely exact matches)
+            # 2. OR the query looks like it's specifically asking for a company name
+            query_words = user_query.lower().split()
+            looks_like_company_query = any(word in user_query.lower() for word in ['company', 'ltd', 'limited', 'inc', 'corp'])
+            
+            if len(company_name_hits) <= 10 or looks_like_company_query:
+                use_company_name_results = True
+                self.logger.info(f"[Strategy] Company name match found: {len(company_name_hits)} companies")
+            else:
+                self.logger.info(f"[Strategy] Company name search found {len(company_name_hits)} companies, but falling back to general search for broader query")
+        
+        if use_company_name_results:
+            companies_raw = self.cm.get_integrated_companies()
+            companies = [self.builder.from_integrated(companies_raw[i], i) for i in company_name_hits if 0 <= i < len(companies_raw)]
+            
+            total = time.time() - t0
+            md = QueryMetadata(
+                strategy=ProcessingStrategy.HYBRID,  # Use hybrid for company name matches
+                confidence=1.0,  # High confidence for exact matches
+                companies_count=len(companies),
+                processing_time=total,
+                intent_enhancement_used=False,
+                timings_ms={"company_name_search_ms": (time.time() - t2) * 1000},
+            )
+            summary = self._summarize(companies, intents)
+            intent_answer = self._intent_answer(companies, intents)
+            return QueryResult(
+                companies=companies,
+                metadata=md,
+                enhanced_summary=summary,
+                raw_results={"company_name_hits": len(company_name_hits)},
+                intent_info={"intents": intents, "answer": intent_answer}
+            )
+
+        # 3) Standard prefilter (fallback if no company name matches)
         tokens = [t for t in tokenize(user_query) if len(t) > 2]
         loc_hits = []
         for tok in tokens:
@@ -982,10 +1136,14 @@ class EnhancedQueryProcessor:
         timings["prefilter_ms"] = (time.time() - t2) * 1000
 
         # 3) embeddings (optional) and TF-IDF on the same candidate pool
+        # Use all candidates if topk is None, otherwise use expanded topk for ranking
+        ranking_limit = len(pre) if topk is None else topk * 2
         t3 = time.time()
-        emb_ranked = self.engine.rerank_with_embeddings(user_query, pre, topk=topk*2)
-        tfidf_ranked = self.engine.tfidf_rank(user_query, pre, topk=topk*2)
-        fused_ranked = rrf_merge([emb_ranked, tfidf_ranked])[:topk]
+        emb_ranked = self.engine.rerank_with_embeddings(user_query, pre, topk=ranking_limit)
+        tfidf_ranked = self.engine.tfidf_rank(user_query, pre, topk=ranking_limit)
+        fused_ranked = rrf_merge([emb_ranked, tfidf_ranked])
+        if topk is not None:
+            fused_ranked = fused_ranked[:topk]
         timings["rerank_ms"] = (time.time() - t3) * 1000
         embed_used = _EMBED_OK and len(emb_ranked) > 0
         tfidf_used = _TFIDF_OK and len(tfidf_ranked) > 0
@@ -995,13 +1153,13 @@ class EnhancedQueryProcessor:
         has_loc_or_company = any(x in intents for x in ("location", "company"))
         strategy = choose_strategy(intents, confidence, has_loc_or_company)
 
-        # 5) select ids
+        # 5) select ids - show all matches if topk is None
         if strategy in (ProcessingStrategy.EMBEDDING_PRIMARY, ProcessingStrategy.HYBRID):
-            ids = fused_ranked[:topk]
+            ids = fused_ranked if topk is None else fused_ranked[:topk]
         elif strategy == ProcessingStrategy.INTENT_ENHANCED:
-            ids = (fused_ranked or pre)[:topk]
+            ids = (fused_ranked or pre) if topk is None else (fused_ranked or pre)[:topk]
         else:
-            ids = (tfidf_ranked or kw_hits or pre)[:topk]
+            ids = (tfidf_ranked or kw_hits or pre) if topk is None else (tfidf_ranked or kw_hits or pre)[:topk]
 
         # 6) materialize
         t4 = time.time()
@@ -1061,7 +1219,7 @@ def _try_project_load_config():
 
 def execute_enhanced_query_with_summary(user_query: str, config: Optional[Dict[str, Any]] = None,
                                         logger: Optional[logging.Logger] = None,
-                                        topk: int = 20) -> Dict[str, Any]:
+                                        topk: int = None) -> Dict[str, Any]:
     if config is None or logger is None:
         cfg2, log2 = _try_project_load_config()
         config = config or (cfg2 or {"company_data": "./processed_data_store"})
@@ -1083,22 +1241,23 @@ def execute_enhanced_query_with_summary(user_query: str, config: Optional[Dict[s
     proc = EnhancedQueryProcessor(config, logger)
     res = proc.process_query(user_query, topk=topk)
 
+    # Detect query intent to determine what fields to include
+    intents = res.intent_info.get("intents", ()) if res.intent_info else ()
+    
+    # Determine what additional fields to include based on query intent
+    include_location = "location" in intents or any(word in user_query.lower() for word in ["where", "located", "location", "address"])
+    include_domain = "business_domain" in intents or any(word in user_query.lower() for word in ["domain", "expertise", "specialization"])
+    include_certifications = "certifications" in intents or any(word in user_query.lower() for word in ["certification", "certified", "iso", "nabl"])
+    include_products = "products_services" in intents or any(word in user_query.lower() for word in ["product", "products", "made", "manufacture", "list"])
+
+    # Return companies with context-aware fields
     return {
-        "query": user_query,
-        "strategy": res.metadata.strategy.value,
-        "confidence": res.metadata.confidence,
-        "processing_time": res.metadata.processing_time,
-        "intent_enhancement_used": res.metadata.intent_enhancement_used,
-        "timings_ms": res.metadata.timings_ms,
-        "results": {
-            "companies": [c.to_dict() for c in res.companies],
-            "companies_count": res.metadata.companies_count,
-            "products_count": res.metadata.products_count,
-        },
-        "company_contacts": [c.to_dict() for c in res.companies],
-        "enhanced_summary": res.enhanced_summary,
-        "intent_answer": (res.intent_info or {}).get("answer", ""),
-        "raw_results": res.raw_results,
+        "companies": [c.to_dict(
+            include_location=include_location,
+            include_domain=include_domain, 
+            include_certifications=include_certifications,
+            include_products=include_products
+        ) for c in res.companies]
     }
 
 
